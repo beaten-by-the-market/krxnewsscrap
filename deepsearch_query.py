@@ -1,35 +1,31 @@
 import pandas as pd
 import streamlit as st
 
-# 문서구분
+# 데이터 프레임 설정
 doc_cat_dict = {
     '문서구분': ['국내뉴스', '증권사보고서', '공시 및 IR', '특허'],
     'category': ['["news"]', '["research"]', '["company"]', '["patent"]']
 }
 df_doc_cat = pd.DataFrame(doc_cat_dict)
 
-# 국내뉴스 구분
 domestic_news_dict = {
     '국내뉴스': ['전체', '경제', '기술/IT', '문화', '사설', '사회', '세계', '연예', '정치'],
-    'news': ['[""]','["economy"]', '["tech"]', '["culture"]', '["opinion"]', '["society"]', '["world"]', '["entertainment"]', '["politics"]']
+    'news': ['[""]', '["economy"]', '["tech"]', '["culture"]', '["opinion"]', '["society"]', '["world"]', '["entertainment"]', '["politics"]']
 }
 df_domestic_news = pd.DataFrame(domestic_news_dict)
 
-# 증권사 보고서 구분
 anal_report_dict = {
     '증권사보고서': ['경제 보고서', '기업 보고서', '산업 보고서', '시장 전망', '채권 보고서', '투자전략', '전체'],
     'research': ['["economy"]', '["company"]', '["industry"]', '["market"]', '["bond"]', '["strategy"]', 'None']
 }
 df_anal_report = pd.DataFrame(anal_report_dict)
 
-# 공시_IR 구분
 disc_ir_dict = {
     '공시_IR': ['IR', '공시', '전체'],
     'company': ['["ir"]', '["disclosure"]', 'None']
 }
 df_disc_ir = pd.DataFrame(disc_ir_dict)
 
-# 언론사 구분
 news_comp_dict = {
     '언론사': [
         '전체', '중앙일간지', '중앙경제지', 
@@ -46,14 +42,12 @@ news_comp_dict = {
 }
 df_news_comp = pd.DataFrame(news_comp_dict)
 
-# 시장구분
 listed_comp_dict = {
     '상장사': ['유가', '코스닥', '코넥스'],
     'listedcompany': ["securities.market:('KOSPI')", "securities.market:('KOSDAQ')", "securities.market:('KONEX')"]
 }
 df_listed_comp = pd.DataFrame(listed_comp_dict)
 
-# 키워드 구분
 keyword_dict = {
     '키워드구분': ['키워드단독', '키워드조합'],
     'keyword': [
@@ -62,13 +56,6 @@ keyword_dict = {
     ]
 }
 df_keyword = pd.DataFrame(keyword_dict)
-
-
-
-
-
-
-
 
 # Streamlit UI 구성
 st.title('DeepSearch 쿼리 생성기')
@@ -81,12 +68,38 @@ doc_cat_query = df_doc_cat[df_doc_cat['문서구분'] == doc_cat_selection]['cat
 if doc_cat_selection == '국내뉴스':
     domestic_news_selection = st.selectbox('국내뉴스 구분', df_domestic_news['국내뉴스'])
     domestic_news_query = df_domestic_news[df_domestic_news['국내뉴스'] == domestic_news_selection]['news'].values[0]
+    
     # 언론사 선택
     news_comp_selection = st.selectbox('언론사 구분', df_news_comp['언론사'])
-    news_comp_query = df_news_comp[df_news_comp['언론사'] == news_comp_selection]['publisher'].values[0]
+    
+    # '언론사 구분'을 변경했을 때 상태 초기화
+    if 'last_news_comp_selection' not in st.session_state or st.session_state.last_news_comp_selection != news_comp_selection:
+        publishers = df_news_comp[df_news_comp['언론사'] == news_comp_selection]['publisher'].values[0]
+        publisher_list = publishers.replace("publisher :(", "").replace(")", "").replace("'", "").split(" or ")
+        st.session_state.publisher_options = publisher_list
+        st.session_state.selected_publishers = publisher_list
+        st.session_state.last_news_comp_selection = news_comp_selection
+    
+    # 새로운 언론사 추가
+    additional_publisher = st.text_input("추가할 언론사를 입력하세요")
+    if additional_publisher:
+        if additional_publisher not in st.session_state.publisher_options:
+            st.session_state.publisher_options.append(additional_publisher)
+        if additional_publisher not in st.session_state.selected_publishers:
+            st.session_state.selected_publishers.append(additional_publisher)
+    
+    # 사용자 추가를 반영한 multiselect (한 번만 호출)
+    selected_publishers = st.multiselect('언론사를 선택하세요', options=st.session_state.publisher_options, default=st.session_state.selected_publishers)
+
+    if selected_publishers:
+        news_comp_query = " or ".join([f"'{publisher}'" for publisher in selected_publishers])
+        news_comp_query = f"publisher :({news_comp_query})"
+    else:
+        news_comp_query = ''
 else:
     domestic_news_query = ''
     news_comp_query = ''
+
 
 # 증권사 보고서 선택
 if doc_cat_selection == '증권사보고서':
@@ -201,7 +214,7 @@ if st.button('쿼리생성'):
     query_parts_and = [part for part in query_parts_and if part and part != 'None']
     query_parts_comma = [part for part in query_parts_comma if part and part != 'None']
 
-    # 최종 쿼리 생성 (각 쿼리 파트를 개행으로 구분하여 보기 쉽게 표시)
+    # 최종 쿼리 생성 
     intro = 'DocumentSearch('
     outro = ', count = 100, page = 1)'
     final_query_category = ' , '.join(query_parts)
