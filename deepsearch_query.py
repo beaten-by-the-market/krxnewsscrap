@@ -66,31 +66,36 @@ doc_cat_query = df_doc_cat[df_doc_cat['문서구분'] == doc_cat_selection]['cat
 
 # 뉴스 선택시 상세구분
 if doc_cat_selection == '국내뉴스':
-    domestic_news_selection = st.selectbox('국내뉴스 구분', df_domestic_news['국내뉴스'])
+    domestic_news_selection = st.selectbox('뉴스 섹션', df_domestic_news['국내뉴스'])
     domestic_news_query = df_domestic_news[df_domestic_news['국내뉴스'] == domestic_news_selection]['news'].values[0]
     
     # 언론사 선택
     news_comp_selection = st.selectbox('언론사 구분', df_news_comp['언론사'])
+    all_publishers = df_news_comp[df_news_comp['언론사'] == '전체']['publisher'].values[0]
+    all_publisher_list = all_publishers.replace("publisher :(", "").replace(")", "").replace("'", "").split(" or ")
     
     # '언론사 구분'을 변경했을 때 상태 초기화
     if 'last_news_comp_selection' not in st.session_state or st.session_state.last_news_comp_selection != news_comp_selection:
         publishers = df_news_comp[df_news_comp['언론사'] == news_comp_selection]['publisher'].values[0]
         publisher_list = publishers.replace("publisher :(", "").replace(")", "").replace("'", "").split(" or ")
-        st.session_state.publisher_options = publisher_list
+        st.session_state.publisher_options = all_publisher_list
         st.session_state.selected_publishers = publisher_list
         st.session_state.last_news_comp_selection = news_comp_selection
     
     # 새로운 언론사 추가
     additional_publisher = st.text_input("추가할 언론사를 입력하세요")
     if additional_publisher:
-        if additional_publisher not in st.session_state.publisher_options:
-            st.session_state.publisher_options.append(additional_publisher)
+        # if additional_publisher not in st.session_state.publisher_options:
+            # st.session_state.publisher_options.append(additional_publisher)
         if additional_publisher not in st.session_state.selected_publishers:
             st.session_state.selected_publishers.append(additional_publisher)
     
     # 사용자 추가를 반영한 multiselect (한 번만 호출)
-    selected_publishers = st.multiselect('언론사를 선택하세요', options=st.session_state.publisher_options, default=st.session_state.selected_publishers)
+    selected_publishers = st.multiselect('검색할 언론사를 확인하세요', options=st.session_state.publisher_options, default=st.session_state.selected_publishers)
 
+    # 선택한 언론사 업데이트
+    st.session_state.selected_publishers = selected_publishers
+    
     if selected_publishers:
         news_comp_query = " or ".join([f"'{publisher}'" for publisher in selected_publishers])
         news_comp_query = f"publisher :({news_comp_query})"
@@ -121,7 +126,54 @@ listed_comp_query = df_listed_comp[df_listed_comp['상장사'] == listed_comp_se
 
 # 키워드 선택
 keyword_selection = st.selectbox('키워드 구분', df_keyword['키워드구분'])
-keyword_query = df_keyword[df_keyword['키워드구분'] == keyword_selection]['keyword'].values[0]
+
+# 키워드 선택시 상세구분
+single_keywords = df_keyword[df_keyword['키워드구분'] == '키워드단독']['keyword'].values[0]
+single_keyword_list = single_keywords.replace("(", "").replace(")", "").replace("'", "").split(" or ")
+
+multi_keywords = df_keyword[df_keyword['키워드구분'] == '키워드조합']['keyword'].values[0]
+multi_keyword_list = multi_keywords.replace("((", "(").replace("))", ")").replace("'", "").split(" or ")
+
+all_keyword_list = single_keyword_list + multi_keyword_list
+
+# '키워드 구분'을 변경했을 때 상태 초기화
+if 'last_keyword_selection' not in st.session_state or st.session_state.last_keyword_selection != keyword_selection:
+    keywords = df_keyword[df_keyword['키워드구분'] == keyword_selection]['keyword'].values[0]
+    if keyword_selection == '키워드단독':
+        keyword_list = single_keyword_list
+    else:
+        keyword_list = multi_keyword_list
+
+    st.session_state.keyword_options = all_keyword_list
+    st.session_state.selected_keywords = keyword_list
+    st.session_state.last_keyword_selection = keyword_selection
+
+# 새로운 언론사 추가
+additional_keyword = st.text_input("추가할 키워드를 입력하세요")
+if additional_keyword:
+    if additional_keyword not in st.session_state.keyword_options:
+        st.session_state.keyword_options.append(additional_keyword)
+    if additional_keyword not in st.session_state.selected_keywords:
+        st.session_state.selected_keywords.append(additional_keyword)
+
+# 사용자 추가를 반영한 multiselect (한 번만 호출)
+selected_keywords = st.multiselect('검색할 키워드를 확인하세요(결합검색 예시: (사기 and 부정거래))', options=st.session_state.keyword_options, default=st.session_state.selected_keywords)
+
+# 선택한 언론사 업데이트
+st.session_state.selected_keywords = selected_keywords
+
+if selected_keywords:
+    keyword_query = " or ".join([f"'{keyword}'" for keyword in selected_keywords])
+    keyword_query = f"({keyword_query})"
+else:
+    keyword_query = ''
+
+
+
+
+
+   
+
 
 # 날짜 및 시간 칼럼 생성
 col1, col2 = st.columns(2)
