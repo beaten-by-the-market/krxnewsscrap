@@ -5,7 +5,6 @@ import requests
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import time
-from tqdm import tqdm
 import mysql.connector
 
 # InsecureRequestWarning 비활성화
@@ -90,15 +89,20 @@ def load_data_from_db():
             # 데이터프레임 초기화
             disc = pd.DataFrame(columns=[desc[0] for desc in cursor.description])
 
-            # 데이터를 청크 단위로 가져오면서 프로그레스 바 업데이트
+            # Streamlit의 프로그레스 바 설정
+            progress_bar = st.progress(0)
             batch_size = 1000  # 한 번에 가져올 행의 수
-            with tqdm(total=total_rows, desc="Fetching data") as pbar:
-                while True:
-                    rows = cursor.fetchmany(batch_size)
-                    if not rows:
-                        break
-                    disc = pd.concat([disc, pd.DataFrame(rows, columns=disc.columns)], ignore_index=True)
-                    pbar.update(len(rows))
+            rows_fetched = 0
+
+            while True:
+                rows = cursor.fetchmany(batch_size)
+                if not rows:
+                    break
+                disc = pd.concat([disc, pd.DataFrame(rows, columns=disc.columns)], ignore_index=True)
+
+                # 프로그레스 바 업데이트
+                rows_fetched += len(rows)
+                progress_bar.progress(min(rows_fetched / total_rows, 1.0))
 
             return disc
 
