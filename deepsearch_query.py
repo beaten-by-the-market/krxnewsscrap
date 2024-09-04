@@ -43,7 +43,7 @@ def make_request(url, headers, max_retries=5):
 #-----------------------------------------------------------
 # Streamlit UI 구성
 #-----------------------------------------------------------
-st.set_page_config(layout="wide")
+st.set_page_config(page_title='KRX 검색기', layout="wide")
 st.title('KRX 상장사 문서검색기 :sunglasses:')
 st.markdown("*by :blue[Data Leaders]*:blossom:")
 
