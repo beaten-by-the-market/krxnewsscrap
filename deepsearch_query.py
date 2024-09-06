@@ -389,18 +389,25 @@ if st.sidebar.button('검색'):
         final_query_condition = ' and '.join(query_parts_and)
         final_query_comma = ' , '.join(query_parts_comma)
         final_query_all = intro + final_query_category + (' , "' + final_query_condition + '"' if final_query_condition else '') + ((' , ' if final_query_comma else '') + final_query_comma) + outro
-
+        
+        
+        
+        
         # 현재 페이지 설정
         current_page = 1
     
         #사전에 생성한 함수로 URL생성
         url = generate_url(current_page)
+        st.write("작성한 쿼리", url)
+        st.write("검색한 문서목록")
         
         # 검색해오기
         response = make_request(url, headers)
         response_data = response.json()
+        st.write("_", response_data)
         docs = response_data['data']['pods'][1]['content']['data']['docs']
         df_list = [pd.json_normalize(docs)]
+        
         
         # 검색해온 API에서 총 페이지 수 획득
         last_page = response_data['data']['pods'][1]['content']['data']['last_page']
@@ -427,8 +434,7 @@ if st.sidebar.button('검색'):
         # 표출할 데이터프레임에서 필요한 칼럼만 남기기
         df_show = df[['section', 'publisher', 'author', 'title', 'content', 'content_url']]
         
-        st.write("작성한 쿼리", final_query_all)
-        st.write("검색한 문서목록")
+        
         
         # Streamlit에서 Styled DataFrame을 interactive하게 표시
         st.dataframe(df_show, use_container_width=True)
