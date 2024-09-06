@@ -286,7 +286,7 @@ if additional_keyword:
         st.session_state.selected_keywords.append(additional_keyword)
 
 # 사용자 추가를 반영한 multiselect (한 번만 검색)
-selected_keywords = st.sidebar.multiselect('', options=st.session_state.selected_keywords,
+selected_keywords = st.sidebar.multiselect('', options=st.session_state.keyword_options,
                                            default=st.session_state.selected_keywords,
                                            label_visibility='collapsed')
 
