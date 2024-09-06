@@ -170,10 +170,16 @@ listed_comp_dict = {
 df_listed_comp = pd.DataFrame(listed_comp_dict)
 
 keyword_dict = {
-    '키워드구분': ['키워드단독', '키워드조합'],
+    '키워드구분': ['키워드단독', '계약수주관련', '인수,투자', '실적관련', '발행관련', 
+              '회계관련', '소송 및 부도파산회생 등'],
     'keyword': [
-        '(공시 or 수주 or 계약 or 인수 or 합병 or 분할 or 영업양도 or 영업양수 or 엠앤에이 or 출자 or 투자 or 매출 or 실적 or 이익 or 배당 or 증자 or 감자 or 주식교환 or 주식이전 or 우회상장 or 상장폐지 or 관리종목 or 자본잠식 or 비적정 or 의견거절 or 회계처리 or 분식 or 소송 or 횡령 or 배임 or 부도 or 파산 or 회생 or 공소 or 기소 or 혐의)',
-        '((수주 and 체결) or (수주 and 공급) or (계약 and 체결) or (계약 and 공급) or 인수 or 합병 or 분할 or 영업양도 or 영업양수 or 엠앤에이 or 출자 or 투자 or (매출 and 발표) or (매출 and 공표) or (매출 and 결정) or (매출 and 기록) or (매출 and 달성) or (매출 and 공시) or (실적 and 발표) or (실적 and 공표) or (실적 and 결정) or (실적 and 기록) or (실적 and 달성) or (실적 and 공시) or (이익 and 발표) or (이익 and 공표) or (이익 and 결정) or (이익 and 기록) or (이익 and 달성) or (이익 and 공시) or (배당 and 발표) or (배당 and 공표) or (배당 and 결정) or (배당 and 기록) or (배당 and 달성) or (배당 and 공시) or 증자 or 감자 or 주식교환 or 주식이전 or 우회상장 or 상장폐지 or 관리종목 or 자본잠식 or (비적정 and 감사) or (비적정 and 회계법인) or (의견거절 and 감사) or (의견거절 and 회계법인) or (회계처리 and 위반) or 분식 or 소송 or 횡령 or 배임 or 부도 or 파산 or 회생 or (공소 and 대표이사) or (공소 and 임원) or (공소 and 이사) or (기소 and 대표이사) or (기소 and 임원) or (기소 and 이사) or (혐의 and 대표이사) or (혐의 and 임원) or (혐의 and 이사))'
+        '공시 or 수주 or 계약 or 인수 or 합병 or 분할 or 영업양도 or 영업양수 or 엠앤에이 or 출자 or 투자 or 매출 or 실적 or 이익 or 배당 or 증자 or 감자 or 주식교환 or 주식이전 or 우회상장 or 상장폐지 or 관리종목 or 자본잠식 or 비적정 or 의견거절 or 회계처리 or 분식 or 소송 or 횡령 or 배임 or 부도 or 파산 or 회생 or 공소 or 기소 or 혐의',
+        '(수주 and 체결) or (수주 and 공급) or (계약 and 체결) or (계약 and 공급)',
+        '인수 or 합병 or 분할 or 영업양도 or 영업양수 or 엠앤에이 or 출자 or 투자',
+        '(매출 and 발표) or (매출 and 공표) or (매출 and 결정) or (매출 and 기록) or (매출 and 달성) or (매출 and 공시) or (실적 and 발표) or (실적 and 공표) or (실적 and 결정) or (실적 and 기록) or (실적 and 달성) or (실적 and 공시) or (이익 and 발표) or (이익 and 공표) or (이익 and 결정) or (이익 and 기록) or (이익 and 달성) or (이익 and 공시) or (배당 and 발표) or (배당 and 공표) or (배당 and 결정) or (배당 and 기록) or (배당 and 달성) or (배당 and 공시)',
+        '증자 or 감자 or 주식교환 or 주식이전 or 우회상장',
+        '상장폐지 or 관리종목 or 자본잠식 or (비적정 and 감사) or (비적정 and 회계법인) or (의견거절 and 감사) or (의견거절 and 회계법인) or (회계처리 and 위반) or 분식',
+        '소송 or 횡령 or 배임 or 부도 or 파산 or 회생 or (공소 and 대표이사) or (공소 and 임원) or (공소 and 이사) or (기소 and 대표이사) or (기소 and 임원) or (기소 and 이사) or (혐의 and 대표이사) or (혐의 and 임원) or (혐의 and 이사)'
     ]
 }
 df_keyword = pd.DataFrame(keyword_dict)
@@ -257,20 +263,46 @@ keyword_selection = st.sidebar.selectbox('키워드 구분', df_keyword['키워�
 
 # 키워드 선택시 상세구분
 single_keywords = df_keyword[df_keyword['키워드구분'] == '키워드단독']['keyword'].values[0]
-single_keyword_list = single_keywords.replace("(", "").replace(")", "").replace("'", "").split(" or ")
+single_keyword_list = single_keywords.split(" or ")
 
-multi_keywords = df_keyword[df_keyword['키워드구분'] == '키워드조합']['keyword'].values[0]
-multi_keyword_list = multi_keywords.replace("((", "(").replace("))", ")").replace("'", "").split(" or ")
+contract_keywords = df_keyword[df_keyword['키워드구분'] == '계약수주관련']['keyword'].values[0]
+contract_keyword_list = contract_keywords.split(" or ")
 
-all_keyword_list = single_keyword_list + multi_keyword_list
+invest_keywords = df_keyword[df_keyword['키워드구분'] == '인수,투자']['keyword'].values[0]
+invest_keyword_list = invest_keywords.split(" or ")
+
+earnings_keywords = df_keyword[df_keyword['키워드구분'] == '실적관련']['keyword'].values[0]
+earnings_keyword_list = earnings_keywords.split(" or ")
+
+issuance_keywords = df_keyword[df_keyword['키워드구분'] == '발행관련']['keyword'].values[0]
+issuance_keyword_list = issuance_keywords.split(" or ")
+
+accounting_keywords = df_keyword[df_keyword['키워드구분'] == '회계관련']['keyword'].values[0]
+accounting_keyword_list = accounting_keywords.split(" or ")
+
+court_keywords = df_keyword[df_keyword['키워드구분'] == '소송 및 부도파산회생 등']['keyword'].values[0]
+court_keyword_list = court_keywords.split(" or ")
+
+all_keyword_list = single_keyword_list + contract_keyword_list + invest_keyword_list +\
+    earnings_keyword_list + issuance_keyword_list + accounting_keyword_list + court_keyword_list
 
 # '키워드 구분'을 변경했을 때 상태 초기화
 if 'last_keyword_selection' not in st.session_state or st.session_state.last_keyword_selection != keyword_selection:
     keywords = df_keyword[df_keyword['키워드구분'] == keyword_selection]['keyword'].values[0]
     if keyword_selection == '키워드단독':
         keyword_list = single_keyword_list
-    else:
-        keyword_list = multi_keyword_list
+    elif keyword_selection == '계약수주관련':
+        keyword_list = contract_keyword_list
+    elif keyword_selection == '인수,투자':
+        keyword_list = invest_keyword_list
+    elif keyword_selection == '실적관련':
+        keyword_list = earnings_keyword_list
+    elif keyword_selection == '발행관련':
+        keyword_list = issuance_keyword_list
+    elif keyword_selection == '회계관련':
+        keyword_list = accounting_keyword_list
+    elif keyword_selection == '소송 및 부도파산회생 등':
+        keyword_list = court_keyword_list
 
     st.session_state.keyword_options = all_keyword_list
     st.session_state.selected_keywords = keyword_list
@@ -294,7 +326,7 @@ selected_keywords = st.sidebar.multiselect('', options=st.session_state.keyword_
 st.session_state.selected_keywords = selected_keywords
 
 if selected_keywords:
-    keyword_query = " or ".join([f"'{keyword}'" for keyword in selected_keywords])
+    keyword_query = " or ".join([f"{keyword}" for keyword in selected_keywords])
     keyword_query = f"({keyword_query})"
 else:
     keyword_query = ''
@@ -398,13 +430,12 @@ if st.sidebar.button('검색'):
     
         #사전에 생성한 함수로 URL생성
         url = generate_url(current_page)
-        st.write("작성한 쿼리", url)
-        st.write("검색한 문서목록")
+
         
         # 검색해오기
         response = make_request(url, headers)
         response_data = response.json()
-        st.write("_", response_data)
+        
         docs = response_data['data']['pods'][1]['content']['data']['docs']
         df_list = [pd.json_normalize(docs)]
         
@@ -426,20 +457,25 @@ if st.sidebar.button('검색'):
     
             progress = int(current_page / last_page * 100)
             progress_bar.progress(progress)
-    
+        
         df = pd.concat(df_list, ignore_index=True)
         # 표출할 데이터프레임에서 중복칼럼 제거
         df_show = df.loc[:, ~df.columns.duplicated()]
-
-        # 표출할 데이터프레임에서 필요한 칼럼만 남기기
-        df_show = df[['section', 'publisher', 'author', 'title', 'content', 'content_url']]
         
-        
-        
-        # Streamlit에서 Styled DataFrame을 interactive하게 표시
-        st.dataframe(df_show, use_container_width=True)
+        # 작성한 DeepSearch 쿼리를 이탤릭체와 회색 글씨로 표시
+        st.markdown('<p style="color:gray;"><i>작성한 DeepSearch 쿼리 :</i></p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:gray;"><i>{final_query_all}</i></p>', unsafe_allow_html=True)
 
         
+        # 검색해온 API에서 데이터프레임 생성
+        if not df.empty and all(col in df.columns for col in ['section', 'publisher', 'author', 'title', 'content', 'content_url']):
+            # 표출할 데이터프레임에서 필요한 칼럼만 남기기
+            df_show = df[['section', 'publisher', 'author', 'title', 'content', 'content_url']]
+            st.write("검색된 문서 목록:")
+            # Streamlit에서 Styled DataFrame을 interactive하게 표시
+            st.dataframe(df_show, use_container_width=True)
+        else:
+            st.markdown("<h3><b>선택한 기간에 해당 검색 사항이 없습니다. 검색 기간을 늘려보세요.</b></h3>", unsafe_allow_html=True)                
         # 데이터프레임을 세션 상태에 저장
         st.session_state.df = df
 
