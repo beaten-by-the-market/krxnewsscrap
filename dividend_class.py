@@ -73,12 +73,13 @@ with st.spinner('잠시만 기다려 주세요... 데이터 로드 중입니다.
     #-----------------------------------------------------------
     # 접속정보
     db_config = {
-        'user': 'krx01',
-        'password': 'rjfoth01',
-        'host': 'krxdb1.mysql.database.azure.com',
-        'port': 3306,
-        'database': 'opendart',
+    'user': st.secrets["db_credentials"]["user"],
+    'password': st.secrets["db_credentials"]["password"],
+    'host': st.secrets["db_credentials"]["host"],
+    'port': st.secrets["db_credentials"]["port"],
+    'database': st.secrets["db_credentials"]["database"],
     }
+    
     
     # 데이터를 캐싱하여 재사용
     # 데이터를 캐싱하여 재사용
@@ -321,3 +322,9 @@ else:
 #         st.error("종목코드 여섯자리를 입력하세요.")
 
 st.write('※데이터 : NICE평가정보 "기업 - 기업 일반 정보 - 주주 및 배당"')
+
+
+
+# #아나콘다 프롬프트에서 실행하는 코드
+# #cd C:\Users\170027\Documents\krxnewsscrap
+# #streamlit run dividend_class.py
