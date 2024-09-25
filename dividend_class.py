@@ -73,13 +73,12 @@ with st.spinner('잠시만 기다려 주세요... 데이터 로드 중입니다.
     #-----------------------------------------------------------
     # 접속정보
     db_config = {
-    'user': st.secrets["db_credentials"]["user"],
-    'password': st.secrets["db_credentials"]["password"],
-    'host': st.secrets["db_credentials"]["host"],
-    'port': st.secrets["db_credentials"]["port"],
-    'database': st.secrets["db_credentials"]["database"],
+        'user': 'krx01',
+        'password': 'rjfoth01',
+        'host': 'krxdb1.mysql.database.azure.com',
+        'port': 3306,
+        'database': 'opendart',
     }
-    
     
     # 데이터를 캐싱하여 재사용
     # 데이터를 캐싱하여 재사용
@@ -232,12 +231,18 @@ with st.spinner('데이터 가공 중입니다.'):
     
     
     
+    
 #-----------------------------------------------------------
 # 최근연도 기준 데이터만 표출. 배당증가유지 순서
 df_show_by_rank = df_data_annual3[df_data_annual3['기준연도'] == '2023'].sort_values('연속배당증가', ascending = False)
+
+# 에러방지를 위해 데이터형태 변경
+df_show_by_rank = df_show_by_rank.astype({'연속배당증가': 'int', '배당증가유지': 'int'})
+
 max_increase = df_show_by_rank['연속배당증가'].max()
 max_increase_maintain = df_show_by_rank['배당증가유지'].max()
-       
+
+
 
 # '최근배당추이' 칼럼을 막대 그래프로 표현
 st.dataframe(
