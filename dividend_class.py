@@ -241,13 +241,13 @@ df_show_by_rank = df_data_annual3[df_data_annual3['기준연도'] == '2023'].sor
 def convert_to_python_types(df):
     for col in df.columns:
         if df[col].dtype == 'int64':  # int64 -> int
-            df[col] = df[col].astype(int)
+            df[col] = df[col].astype(float)
         elif df[col].dtype == 'float64':  # float64 -> float
             df[col] = df[col].astype(float)
         elif df[col].dtype == 'object':
             # '최근배당추이' 컬럼처럼 리스트 형태인 경우에 대한 변환 처리
             if isinstance(df[col].iloc[0], list):
-                df[col] = df[col].apply(lambda x: [int(item) for item in x])  # 리스트 내의 값들을 int로 변환
+                df[col] = df[col].apply(lambda x: [float(item) for item in x])  # 리스트 내의 값들을 int로 변환
     return df
 
 # 데이터 타입을 변환한 후 사용
@@ -255,7 +255,7 @@ df_show_by_rank = convert_to_python_types(df_show_by_rank)
 
 # df_show_by_rank = df_show_by_rank.astype({'연속배당증가': 'int', '배당증가유지': 'int'})
 # # 최근배당추이 컬럼의 리스트 안 데이터 타입을 int64에서 int로 변환
-df_show_by_rank['최근배당추이'] = df_show_by_rank['최근배당추이'].apply(lambda lst: [int(x) for x in lst])
+df_show_by_rank['최근배당추이'] = df_show_by_rank['최근배당추이'].apply(lambda lst: [float(x) for x in lst])
 
 
 max_increase = df_show_by_rank['연속배당증가'].max()
