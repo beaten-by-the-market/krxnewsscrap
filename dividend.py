@@ -170,6 +170,14 @@ today = (datetime.today()).strftime('%Y%m%d')
 #업데이트일 추가
 df_data['last_update'] = today
 
+# df_data의 칼럼순서를 변경하는 코드
+df_data = df_data[['symbol', 'date', 'entity_name', 'accounting_type', '당기순이익(천원)','주당순이익(원)',
+       '배당성향(%)', '보통주현금배당액', '보통주주식배당액(원)', '주당현금배당액(대주주,우선주)(원)',
+       '주당현금배당액(소주주,보통주)(원)', '주당현금배당액(대주주,보통주)(원)', '주당현금배당액(소주주,우선주)(원)',
+       '주당무상배당액(대주주,보통주)(원)','주당무상배당액(소주주,보통주)(원)', 
+       '주당무상배당액(대주주,우선주)(원)', '주당무상배당액(소주주,우선주)(원)',
+        '회기', 'year','mid_dividend', 'last_update']]
+
 # df_data의 칼럼명을 변경하는 코드
 df_data.columns = [
     'symbol', 'date', 'entity_name', 'accounting_type', 'net_income', 'EPS',  
@@ -178,6 +186,8 @@ df_data.columns = [
     'div_DPS_major_ord_share', 'div_DPS_ord_ord_share', 'div_DPS_major_pref_share', 'div_DPS_ord_pref_share',
     'accounting_period', 'year', 'mid_dividend', 'last_update'
 ]
+
+
 
 
 # 데이터프레임의 NaN 값을 None으로 변환
@@ -295,3 +305,133 @@ finally:
         connection.close()
         print("MySQL connection is closed")
         
+#-----------------------------------------------------------
+# 데이터베이스에서 데이터 받아오기
+#-----------------------------------------------------------
+# 접속정보
+db_config = {
+    'user': 'krx01',
+    'password': 'rjfoth01',
+    'host': 'krxdb1.mysql.database.azure.com',
+    'port': 3306,
+    'database': 'opendart',
+}
+
+# 데이터를 캐싱하여 재사용
+def load_data_from_db():
+    connection = None
+    try:
+        # 데이터베이스 연결
+        connection = mysql.connector.connect(**db_config)
+
+        if connection.is_connected():
+            print("Connected to MySQL database")
+
+            # 커서 생성
+            cursor = connection.cursor()
+
+            # 총 행 수 가져오기
+            total_cursor = connection.cursor()
+            total_rows_query = "SELECT COUNT(*) FROM ds_dividend"
+            total_cursor.execute(total_rows_query)
+            total_rows = total_cursor.fetchone()[0]
+            total_cursor.close()
+
+            # 데이터 가져오기
+            query = "SELECT * FROM ds_dividend"
+            cursor.execute(query)
+
+            # 데이터프레임 초기화
+            disc = pd.DataFrame(columns=[desc[0] for desc in cursor.description])
+
+            # Streamlit의 프로그레스 바 설정
+            progress_bar = st.progress(0)
+            batch_size = 1000  # 한 번에 가져올 행의 수
+            rows_fetched = 0
+
+            while True:
+                rows = cursor.fetchmany(batch_size)
+                if not rows:
+                    break
+                disc = pd.concat([disc, pd.DataFrame(rows, columns=disc.columns)], ignore_index=True)
+
+                # 프로그레스 바 업데이트
+                rows_fetched += len(rows)
+                progress_bar.progress(min(rows_fetched / total_rows, 1.0))
+
+            return disc
+
+    except mysql.connector.Error as e:
+        st.error(f"Error: {e}")
+        return pd.DataFrame()  # 빈 데이터프레임 반환
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")
+
+# SQL 데이터를 최초 1회만 로드
+df_data = load_data_from_db()
+
+
+
+#-----------------------------------------------------------
+# 데이터 사용
+#-----------------------------------------------------------
+# accounting_type =1 (연간배당)
+
+df_data_annual = df_data[df_data['accounting_type'] == '1']
+
+# 기업별로 그룹화하고 연도 순으로 정렬
+df_data_annual = df_data_annual.sort_values(by=['symbol', 'year'])
+
+#-----------------------------------------------------------
+# 연속배당 순수증가
+# 연속배당증가햇수 칼럼을 추가할 빈 리스트
+streak_list = []
+
+# 각 기업별로 그룹화하여 처리
+for symbol, group in df_data_annual.groupby('symbol'):
+    streak = 0  # 연속 증가 카운트
+    prev_dps = None  # 이전 배당금 저장
+    for idx, row in group.iterrows():
+        current_dps = row['DPS_ord_ord_share']
+        if prev_dps is not None and current_dps > prev_dps:
+            streak += 1  # 증가한 경우 카운트 증가
+        else:
+            streak = 0  # 감소했거나 같은 경우 리셋
+        streak_list.append(streak)
+        prev_dps = current_dps  # 현재 배당금을 이전 값으로 저장
+
+# 결과를 데이터프레임에 추가
+df_data_annual['연속배당증가'] = streak_list
+
+
+#-----------------------------------------------------------
+# 연속배당 증가 또는 유지
+# 연속배당증가햇수 칼럼을 추가할 빈 리스트
+streak_list = []
+
+# 각 기업별로 그룹화하여 처리
+for symbol, group in df_data_annual.groupby('symbol'):
+    streak = 0  # 연속 증가 카운트
+    prev_dps = None  # 이전 배당금 저장
+    for idx, row in group.iterrows():
+        current_dps = row['DPS_ord_ord_share']
+        if prev_dps is not None and current_dps >= prev_dps and current_dps !=0 :
+            streak += 1  # 증가하거나 같은 경우 카운트 증가(대신 현재 dps가 0은 아니어야함)
+        else:
+            streak = 0  # 감소했거나 같은 경우 리셋
+        streak_list.append(streak)
+        prev_dps = current_dps  # 현재 배당금을 이전 값으로 저장
+
+# 결과를 데이터프레임에 추가
+df_data_annual['배당증가유지'] = streak_list
+
+#-----------------------------------------------------------
+# 최근연도 기준 데이터만 표출. 배당증가유지 순서
+df_test = df_data_annual[df_data_annual['year'] == 2023].sort_values('배당증가유지', ascending = False)
+
+# 특정 기업 기준 데이터만 표출. 연도 순서.
+df_test = df_data_annual[df_data_annual['entity_name'] == 'NICE평가정보'].sort_values('year', ascending = False)
