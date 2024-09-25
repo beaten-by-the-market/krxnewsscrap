@@ -237,8 +237,20 @@ with st.spinner('데이터 가공 중입니다.'):
 df_show_by_rank = df_data_annual3[df_data_annual3['기준연도'] == '2023'].sort_values('연속배당증가', ascending = False)
 
 # 에러방지를 위해 데이터형태 변경
-df_show_by_rank = df_show_by_rank.astype({'연속배당증가': 'int', '배당증가유지': 'int'})
-# 최근배당추이 컬럼의 리스트 안 데이터 타입을 int64에서 int로 변환
+# 데이터프레임의 데이터 타입을 Python 기본 타입으로 변환하는 함수
+def convert_to_python_types(df):
+    for col in df.columns:
+        if df[col].dtype == 'int64':
+            df[col] = df[col].astype(int)  # int64를 Python int로 변환
+        elif df[col].dtype == 'float64':
+            df[col] = df[col].astype(float)  # float64를 Python float로 변환
+    return df
+
+# 데이터 타입을 변환한 후 사용
+df_show_by_rank = convert_to_python_types(df_show_by_rank)
+
+# df_show_by_rank = df_show_by_rank.astype({'연속배당증가': 'int', '배당증가유지': 'int'})
+# # 최근배당추이 컬럼의 리스트 안 데이터 타입을 int64에서 int로 변환
 df_show_by_rank['최근배당추이'] = df_show_by_rank['최근배당추이'].apply(lambda lst: [int(x) for x in lst])
 
 
