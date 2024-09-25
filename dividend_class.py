@@ -253,7 +253,6 @@ def convert_to_python_types(df):
 # 데이터 타입을 변환한 후 사용
 df_show_by_rank = convert_to_python_types(df_show_by_rank)
 
-# df_show_by_rank = df_show_by_rank.astype({'연속배당증가': 'int', '배당증가유지': 'int'})
 # # 최근배당추이 컬럼의 리스트 안 데이터 타입을 int64에서 int로 변환
 df_show_by_rank['최근배당추이'] = df_show_by_rank['최근배당추이'].apply(lambda lst: [float(x) for x in lst])
 
