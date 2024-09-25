@@ -240,10 +240,14 @@ df_show_by_rank = df_data_annual3[df_data_annual3['기준연도'] == '2023'].sor
 # 데이터프레임의 데이터 타입을 Python 기본 타입으로 변환하는 함수
 def convert_to_python_types(df):
     for col in df.columns:
-        if df[col].dtype == 'int64':
-            df[col] = df[col].astype(int)  # int64를 Python int로 변환
-        elif df[col].dtype == 'float64':
-            df[col] = df[col].astype(float)  # float64를 Python float로 변환
+        if df[col].dtype == 'int64':  # int64 -> int
+            df[col] = df[col].astype(int)
+        elif df[col].dtype == 'float64':  # float64 -> float
+            df[col] = df[col].astype(float)
+        elif df[col].dtype == 'object':
+            # '최근배당추이' 컬럼처럼 리스트 형태인 경우에 대한 변환 처리
+            if isinstance(df[col].iloc[0], list):
+                df[col] = df[col].apply(lambda x: [int(item) for item in x])  # 리스트 내의 값들을 int로 변환
     return df
 
 # 데이터 타입을 변환한 후 사용
