@@ -238,6 +238,9 @@ df_show_by_rank = df_data_annual3[df_data_annual3['기준연도'] == '2023'].sor
 
 # 에러방지를 위해 데이터형태 변경
 df_show_by_rank = df_show_by_rank.astype({'연속배당증가': 'int', '배당증가유지': 'int'})
+# 최근배당추이 컬럼의 리스트 안 데이터 타입을 int64에서 int로 변환
+df_show_by_rank['최근배당추이'] = df_show_by_rank['최근배당추이'].apply(lambda lst: [int(x) for x in lst])
+
 
 max_increase = df_show_by_rank['연속배당증가'].max()
 max_increase_maintain = df_show_by_rank['배당증가유지'].max()
