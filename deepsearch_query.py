@@ -575,7 +575,7 @@ if 'df' in st.session_state:
             filtered_df3 = filtered_df2[['section', 'publisher', 'title', 'content','identified_symbols','content_url']]
 
             # 
-            st.dataframe(filtered_df3, use_container_width=True)
+            st.dataframe(filtered_df3.reset_index(drop = True), use_container_width=True)
 
 
 else:
