@@ -12,23 +12,23 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 #-----------------------------------------------------------
 # 환경변수 설정-로컬
 #-----------------------------------------------------------
-# 인증키 설정
-import os
-from dotenv import load_dotenv
-# .env 파일 로드
-load_dotenv()
+# # 인증키 설정
+# import os
+# from dotenv import load_dotenv
+# # .env 파일 로드
+# load_dotenv()
 
-# 환경 변수에서 API 키 불러오기
-api_key = os.getenv("API_KEY")
+# # 환경 변수에서 API 키 불러오기
+# api_key = os.getenv("API_KEY")
 
-# DB 연결 정보도 환경 변수에서 불러오기
-db_config = {
-    'user': os.getenv("DB_USER"),
-    'password': os.getenv("DB_PASSWORD"),
-    'host': os.getenv("DB_HOST"),
-    'port': os.getenv("DB_PORT"),
-    'database': os.getenv("DB_NAME"),
-}
+# # DB 연결 정보도 환경 변수에서 불러오기
+# db_config = {
+#     'user': os.getenv("DB_USER"),
+#     'password': os.getenv("DB_PASSWORD"),
+#     'host': os.getenv("DB_HOST"),
+#     'port': os.getenv("DB_PORT"),
+#     'database': os.getenv("DB_NAME"),
+# }
 
 
 #-----------------------------------------------------------
@@ -52,6 +52,14 @@ db_config_crud = {
     'password': st.secrets["crud"]["db_password"],
     'host': st.secrets["crud"]["db_host"],
     'port': st.secrets["crud"]["db_port"],
+}
+
+#-----------------------------------------------------------
+# 헤더 및 URL
+#-----------------------------------------------------------
+# 인증 헤더에 API 키 적용
+headers = {
+    'Authorization': f'Basic {api_key}'
 }
 
 # API 검색 URL
