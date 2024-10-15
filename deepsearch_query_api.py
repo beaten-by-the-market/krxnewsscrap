@@ -11,10 +11,32 @@ import numpy as np
 # InsecureRequestWarning 비활성화
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+#-----------------------------------------------------------
+# 환경변수 설정
+#-----------------------------------------------------------
 # 인증키 설정
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 API 키 불러오기
+api_key = os.getenv("API_KEY")
+
+# 인증 헤더에 API 키 적용
 headers = {
-    'Authorization': 'Basic ZWU4MjcyYmI1ODAwNGE3Nzk1YmJjNjgwM2YyOTRjZDY6NjgwNGY3YTg1ZjAyYmM1ZjQ4OWMxMWVmMWIzMmFkZjQ5NWYyYzMzMTRkMTE2ZmVlMzVmMzcyY2Q3YmQwYjJlMQ=='
+    'Authorization': f'Basic {api_key}'
 }
+#접속정보
+# Database configuration
+db_config = {
+    'user': os.getenv("DB_USER_CRUD"),
+    'password': os.getenv("DB_PASSWORD_CRUD"),
+    'host': os.getenv("DB_HOST"),
+    'port': os.getenv("DB_PORT"),
+    'database': os.getenv("DB_NAME"),
+}
+
 
 # API 호출 URL
 url_base = 'https://api.deepsearch.com/v1/compute?input='
@@ -122,15 +144,7 @@ summary_df = summary_df2
 #-----------------------------------------------------------
 #판다스를 SQL로 저장하기
 #-----------------------------------------------------------
-#접속정보
-# Database configuration
-db_config = {
-    'user': 'data01',
-    'password': 'epdlxj01',
-    'host': 'krxdb1.mysql.database.azure.com',
-    'port': 3306,
-    'database': 'opendart',
-}
+
 
 # Initialize connection variable
 connection = None

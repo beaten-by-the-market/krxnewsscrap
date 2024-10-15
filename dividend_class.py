@@ -1,6 +1,31 @@
 import pandas as pd
 import streamlit as st
 import mysql.connector
+#-----------------------------------------------------------
+# 환경변수 설정
+#-----------------------------------------------------------
+# 인증키 설정
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 API 키 불러오기
+api_key = os.getenv("API_KEY")
+
+# 인증 헤더에 API 키 적용
+headers = {
+    'Authorization': f'Basic {api_key}'
+}
+
+# DB 연결 정보도 환경 변수에서 불러오기
+db_config = {
+    'user': os.getenv("DB_USER"),
+    'password': os.getenv("DB_PASSWORD"),
+    'host': os.getenv("DB_HOST"),
+    'port': os.getenv("DB_PORT"),
+    'database': os.getenv("DB_NAME"),
+}
 
 # 페이지 레이아웃을 넓게 설정
 st.set_page_config(page_title='한국의 배당계급', layout="wide")
@@ -71,14 +96,7 @@ with st.spinner('잠시만 기다려 주세요... 데이터 로드 중입니다.
     #-----------------------------------------------------------
     # 데이터베이스에서 데이터 받아오기
     #-----------------------------------------------------------
-    # 접속정보
-    db_config = {
-        'user': 'krx01',
-        'password': 'rjfoth01',
-        'host': 'krxdb1.mysql.database.azure.com',
-        'port': 3306,
-        'database': 'opendart',
-    }
+
     
     # 데이터를 캐싱하여 재사용
     # 데이터를 캐싱하여 재사용

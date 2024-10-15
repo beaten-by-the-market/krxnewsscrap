@@ -10,9 +10,30 @@ import mysql.connector
 # InsecureRequestWarning 비활성화
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+#-----------------------------------------------------------
+# 환경변수 설정
+#-----------------------------------------------------------
 # 인증키 설정
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 API 키 불러오기
+api_key = os.getenv("API_KEY")
+
+# 인증 헤더에 API 키 적용
 headers = {
-    'Authorization': 'Basic ZWU4MjcyYmI1ODAwNGE3Nzk1YmJjNjgwM2YyOTRjZDY6NjgwNGY3YTg1ZjAyYmM1ZjQ4OWMxMWVmMWIzMmFkZjQ5NWYyYzMzMTRkMTE2ZmVlMzVmMzcyY2Q3YmQwYjJlMQ=='
+    'Authorization': f'Basic {api_key}'
+}
+
+# DB 연결 정보도 환경 변수에서 불러오기
+db_config = {
+    'user': os.getenv("DB_USER"),
+    'password': os.getenv("DB_PASSWORD"),
+    'host': os.getenv("DB_HOST"),
+    'port': os.getenv("DB_PORT"),
+    'database': os.getenv("DB_NAME"),
 }
 
 # API 검색 URL
@@ -52,15 +73,6 @@ st.markdown("*by :blue[Data Leaders]*:blossom:")
 #-----------------------------------------------------------
 # 데이터베이스에서 데이터 받아오기
 #-----------------------------------------------------------
-# 접속정보
-db_config = {
-    'user': 'krx01',
-    'password': 'rjfoth01',
-    'host': 'krxdb1.mysql.database.azure.com',
-    'port': 3306,
-    'database': 'opendart',
-}
-
 # 데이터를 캐싱하여 재사용
 @st.cache_data
 def load_data_from_db():
