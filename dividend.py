@@ -28,7 +28,18 @@ headers = {
     'Authorization': f'Basic {api_key}'
 }
 
-# DB 연결 정보도 환경 변수에서 불러오기
+#접속정보-CRUD
+# Database configuration
+db_config_crud = {
+    'user': os.getenv("DB_USER_CRUD"),
+    'password': os.getenv("DB_PASSWORD_CRUD"),
+    'host': os.getenv("DB_HOST"),
+    'port': os.getenv("DB_PORT"),
+    'database': os.getenv("DB_NAME"),
+}
+
+#접속정보-일반
+# Database configuration
 db_config = {
     'user': os.getenv("DB_USER"),
     'password': os.getenv("DB_PASSWORD"),
@@ -225,22 +236,13 @@ df_data = df_data.astype(object).where(pd.notnull(df_data), None)
 #-----------------------------------------------------------
 #판다스를 SQL로 저장하기
 #-----------------------------------------------------------
-#접속정보
-# Database configuration
-db_config = {
-    'user': os.getenv("DB_USER_CRUD"),
-    'password': os.getenv("DB_PASSWORD_CRUD"),
-    'host': os.getenv("DB_HOST"),
-    'port': os.getenv("DB_PORT"),
-    'database': os.getenv("DB_NAME"),
-}
 
 # Initialize connection variable
 connection = None
 
 try:
     # Create a connection to the database
-    connection = mysql.connector.connect(**db_config)
+    connection = mysql.connector.connect(**db_config_crud)
 
     if connection.is_connected():
         print("Connected to MySQL database")

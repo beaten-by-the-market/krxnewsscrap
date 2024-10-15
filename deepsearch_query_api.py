@@ -23,13 +23,10 @@ load_dotenv()
 # 환경 변수에서 API 키 불러오기
 api_key = os.getenv("API_KEY")
 
-# 인증 헤더에 API 키 적용
-headers = {
-    'Authorization': f'Basic {api_key}'
-}
-#접속정보
+
+#접속정보-CRUD
 # Database configuration
-db_config = {
+db_config_crud = {
     'user': os.getenv("DB_USER_CRUD"),
     'password': os.getenv("DB_PASSWORD_CRUD"),
     'host': os.getenv("DB_HOST"),
@@ -37,6 +34,20 @@ db_config = {
     'database': os.getenv("DB_NAME"),
 }
 
+#접속정보-일반
+# Database configuration
+db_config = {
+    'user': os.getenv("DB_USER"),
+    'password': os.getenv("DB_PASSWORD"),
+    'host': os.getenv("DB_HOST"),
+    'port': os.getenv("DB_PORT"),
+    'database': os.getenv("DB_NAME"),
+}
+
+# 인증 헤더에 API 키 적용
+headers = {
+    'Authorization': f'Basic {api_key}'
+}
 
 # API 호출 URL
 url_base = 'https://api.deepsearch.com/v1/compute?input='
@@ -152,7 +163,7 @@ connection = None
 # 집어넣기
 try:
     # Create a connection to the database
-    connection = mysql.connector.connect(**db_config)
+    connection = mysql.connector.connect(**db_config_crud)
 
     if connection.is_connected():
         print("Connected to MySQL database")
@@ -249,15 +260,6 @@ finally:
 #-----------------------------------------------------------
 #데이터 받아오기
 #-----------------------------------------------------------
-#접속정보
-# Database configuration
-db_config = {
-    'user': 'krx01',
-    'password': 'rjfoth01',
-    'host': 'krxdb1.mysql.database.azure.com',
-    'port': 3306,
-    'database': 'opendart',
-}
 
 # Initialize connection variable
 connection = None

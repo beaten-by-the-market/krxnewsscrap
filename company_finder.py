@@ -9,9 +9,49 @@ import time
 # InsecureRequestWarning 비활성화
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+#-----------------------------------------------------------
+# 환경변수 설정-로컬
+#-----------------------------------------------------------
 # 인증키 설정
-headers = {
-    'Authorization': 'Basic ZWU4MjcyYmI1ODAwNGE3Nzk1YmJjNjgwM2YyOTRjZDY6NjgwNGY3YTg1ZjAyYmM1ZjQ4OWMxMWVmMWIzMmFkZjQ5NWYyYzMzMTRkMTE2ZmVlMzVmMzcyY2Q3YmQwYjJlMQ=='
+import os
+from dotenv import load_dotenv
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 API 키 불러오기
+api_key = os.getenv("API_KEY")
+
+# DB 연결 정보도 환경 변수에서 불러오기
+db_config = {
+    'user': os.getenv("DB_USER"),
+    'password': os.getenv("DB_PASSWORD"),
+    'host': os.getenv("DB_HOST"),
+    'port': os.getenv("DB_PORT"),
+    'database': os.getenv("DB_NAME"),
+}
+
+
+#-----------------------------------------------------------
+# 환경변수 설정-streamlit
+#-----------------------------------------------------------
+# Streamlit Secrets에서 API 키 불러오기
+# 기본 API 키와 DB 정보를 불러오는 부분
+api_key = st.secrets["general"]["api_key"]
+
+db_config = {
+    'user': st.secrets["general"]["db_user"],
+    'password': st.secrets["general"]["db_password"],
+    'host': st.secrets["general"]["db_host"],
+    'port': st.secrets["general"]["db_port"],
+    'database': st.secrets["general"]["db_name"],
+}
+
+# CRUD 작업에 사용하는 DB 정보를 불러오는 부분
+db_config_crud = {
+    'user': st.secrets["crud"]["db_user"],
+    'password': st.secrets["crud"]["db_password"],
+    'host': st.secrets["crud"]["db_host"],
+    'port': st.secrets["crud"]["db_port"],
 }
 
 # API 검색 URL

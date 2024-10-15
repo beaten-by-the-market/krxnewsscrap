@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import mysql.connector
 #-----------------------------------------------------------
-# 환경변수 설정
+# 환경변수 설정-로컬
 #-----------------------------------------------------------
 # 인증키 설정
 import os
@@ -13,11 +13,6 @@ load_dotenv()
 # 환경 변수에서 API 키 불러오기
 api_key = os.getenv("API_KEY")
 
-# 인증 헤더에 API 키 적용
-headers = {
-    'Authorization': f'Basic {api_key}'
-}
-
 # DB 연결 정보도 환경 변수에서 불러오기
 db_config = {
     'user': os.getenv("DB_USER"),
@@ -26,6 +21,45 @@ db_config = {
     'port': os.getenv("DB_PORT"),
     'database': os.getenv("DB_NAME"),
 }
+
+
+#-----------------------------------------------------------
+# 환경변수 설정-streamlit
+#-----------------------------------------------------------
+# Streamlit Secrets에서 API 키 불러오기
+# 기본 API 키와 DB 정보를 불러오는 부분
+api_key = st.secrets["general"]["api_key"]
+
+db_config = {
+    'user': st.secrets["general"]["db_user"],
+    'password': st.secrets["general"]["db_password"],
+    'host': st.secrets["general"]["db_host"],
+    'port': st.secrets["general"]["db_port"],
+    'database': st.secrets["general"]["db_name"],
+}
+
+# CRUD 작업에 사용하는 DB 정보를 불러오는 부분
+db_config_crud = {
+    'user': st.secrets["crud"]["db_user"],
+    'password': st.secrets["crud"]["db_password"],
+    'host': st.secrets["crud"]["db_host"],
+    'port': st.secrets["crud"]["db_port"],
+}
+
+#-----------------------------------------------------------
+# 헤더 및 URL
+#-----------------------------------------------------------
+# 인증 헤더에 API 키 적용
+headers = {
+    'Authorization': f'Basic {api_key}'
+}
+
+# API 검색 URL
+url_base = 'https://api.deepsearch.com/v1/compute?input='
+
+#-----------------------------------------------------------
+# 페이지구성
+#-----------------------------------------------------------
 
 # 페이지 레이아웃을 넓게 설정
 st.set_page_config(page_title='한국의 배당계급', layout="wide")
