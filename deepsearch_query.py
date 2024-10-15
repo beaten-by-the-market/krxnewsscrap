@@ -93,13 +93,12 @@ def make_request(url, headers, max_retries=5):
 #-----------------------------------------------------------
 st.set_page_config(page_title='KRX 검색기', layout="wide")
 st.title('KRX 상장사 문서검색기 :sunglasses:')
-st.markdown("*by :blue[Data Leaders]*:blossom:")
-
 
 
 #-----------------------------------------------------------
 # 데이터베이스에서 데이터 받아오기
 #-----------------------------------------------------------
+
 # 데이터를 캐싱하여 재사용
 @st.cache_data
 def load_data_from_db():
@@ -128,20 +127,13 @@ def load_data_from_db():
             # 데이터프레임 초기화
             disc = pd.DataFrame(columns=[desc[0] for desc in cursor.description])
 
-            # Streamlit의 프로그레스 바 설정
-            progress_bar = st.progress(0)
             batch_size = 1000  # 한 번에 가져올 행의 수
-            rows_fetched = 0
 
             while True:
                 rows = cursor.fetchmany(batch_size)
                 if not rows:
                     break
                 disc = pd.concat([disc, pd.DataFrame(rows, columns=disc.columns)], ignore_index=True)
-
-                # 프로그레스 바 업데이트
-                rows_fetched += len(rows)
-                progress_bar.progress(min(rows_fetched / total_rows, 1.0))
 
             return disc
 
@@ -157,6 +149,7 @@ def load_data_from_db():
 
 # SQL 데이터를 최초 1회만 로드
 search_list_df_original = load_data_from_db()
+
 
 #-----------------------------------------------------------
 # 선택지 설정
@@ -510,9 +503,10 @@ if st.sidebar.button('검색'):
         if not df.empty and all(col in df.columns for col in ['section', 'publisher', 'author', 'title', 'content', 'content_url']):
             # 표출할 데이터프레임에서 필요한 칼럼만 남기기
             df_show = df[['section', 'publisher', 'author', 'title', 'content', 'content_url']]
-            st.write("검색된 문서 목록:")
+            count = len(df_show)
+            st.write(f"총 {count}건의 뉴스 검색가 검색되어 임시저장되었습니다. 필터조건을 적용하여 확인하세요.")
             # Streamlit에서 Styled DataFrame을 interactive하게 표시
-            st.dataframe(df_show, use_container_width=True)
+            # st.dataframe(df_show, use_container_width=True)
         else:
             st.markdown("<h3><b>선택한 기간에 해당 검색 사항이 없습니다. 검색 기간을 늘려보세요.</b></h3>", unsafe_allow_html=True)                
         # 데이터프레임을 세션 상태에 저장
