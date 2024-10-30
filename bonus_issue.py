@@ -30,8 +30,6 @@ import streamlit as st
 # 환경변수 설정-streamlit
 #-----------------------------------------------------------
 # Streamlit Secrets에서 API 키 불러오기
-# 기본 API 키와 DB 정보를 불러오는 부분
-api_key = st.secrets["general"]["api_key"]
 
 db_config = {
     'user': st.secrets["general"]["db_user"],
