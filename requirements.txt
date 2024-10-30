@@ -3,3 +3,5 @@ pandas
 streamlit
 requests
 python-dotenv
+plotly
+numpy
