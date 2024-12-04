@@ -12,6 +12,12 @@ api_key = st.secrets["general"]["seibro_api_key"]
 # 발행 날짜를 선택하는 입력 필드 (기본값을 공란으로 설정)
 issue_dt = st.date_input("발행 날짜를 선택하세요")
 
+# 날짜가 선택되었을 때 'YYYYMMDD' 형식으로 변환
+if issue_dt:
+    issue_dt_str = issue_dt.strftime("%Y%m%d")
+else:
+    issue_dt_str = None
+
 # "발행된 채권 검색" 버튼 클릭 시 API 호출 함수 실행
 if st.button('발행된 채권 검색'):
     # Seibro API에서 채권 발행 정보를 가져오는 함수
