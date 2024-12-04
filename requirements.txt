@@ -5,4 +5,5 @@ requests
 python-dotenv
 plotly
 numpy
-xmltodict
+xml_to_dict
+XMLtoDict
