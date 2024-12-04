@@ -49,7 +49,7 @@ if st.button('발행된 채권 검색'):
         return df_all
 
     # 채권 데이터를 API로부터 가져오기
-    df_bonds = get_issued_bonds(issue_dt)
+    df_bonds = get_issued_bonds(issue_dt_str)
 
     # 채권 데이터가 있으면 화면에 DataFrame으로 출력, 없으면 "발행된 채권 없음" 메시지 출력
     if not df_bonds.empty:
