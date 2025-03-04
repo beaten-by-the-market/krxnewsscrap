@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+from io import BytesIO
 
 # NXT 데이터 가져오는 함수
 def get_nxt_data():
@@ -34,7 +35,7 @@ def get_krx_data():
     }
     
     response = requests.post(url, params=params)
-    df_krx = pd.read_csv(response.content.decode("euc-kr"))
+    df_krx = pd.read_csv(BytesIO(response.content), encoding='utf-8', errors='replace')
     return df_krx
 
 # KRX와 NXT 데이터 병합 함수
