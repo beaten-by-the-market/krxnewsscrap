@@ -8,7 +8,7 @@ import time
 
 # 페이지 설정 (wide 모드로 설정)
 st.set_page_config(
-    page_title="코스닥 공시 정보 대시보드",
+    page_title="오늘의 코스닥 번역대상 공시",
     layout="wide",  # 화면을 넓게 사용
     initial_sidebar_state="collapsed"  # 사이드바 초기 상태를 접힌 상태로 설정
 )
@@ -435,9 +435,119 @@ columns = ["서식코드", "서식명", "대분류", "구분"]
 # DataFrame 생성
 df_svc = pd.DataFrame(df_data, columns=columns)
 
-# df_svc 표시
-st.subheader('지원대상 공시서식 (2025.3.12 기준)')
-st.dataframe(df_svc)
+# 지원대상 데이터 리스트 (df_data 정의)
+df_data_comp = [
+    ["34821","넥스틴","상장"],
+    ["31966","피에스케이","상장"],
+    ["29349","카카오게임즈","상장"],
+    ["09199","셀트리온헬스케어","상장폐지"],
+    ["27229","이녹스첨단소재","상장"],
+    ["16609","하나머티리얼즈","상장"],
+    ["26375","펄어비스","상장"],
+    ["00338","하림지주","상장"],
+    ["27828","천보","상장"],
+    ["26798","매일유업","상장"],
+    ["09561","테스","상장"],
+    ["23769","에스티팜","상장"],
+    ["24307","휴온스","상장"],
+    ["14502","휴젤","상장"],
+    ["24754","에코프로비엠","상장"],
+    ["24081","원익IPS","상장"],
+    ["23036","에코마케팅","상장"],
+    ["21342","덕산네오룩스","상장"],
+    ["21520","메가스터디교육","상장"],
+    ["21500","골프존","상장"],
+    ["21445","파마리서치","상장"],
+    ["21415","클래시스","상장"],
+    ["19617","알테오젠","상장"],
+    ["20013","콜마비앤에이치","상장"],
+    ["19594","HK이노엔","상장"],
+    ["13740","피엔티","상장"],
+    ["02210","포스코DX","상장폐지"],
+    ["08437","유진테크","상장"],
+    ["18330","코미코","상장"],
+    ["13129","티에스이","상장"],
+    ["06025","NHN KCP","상장"],
+    ["06731","하나마이크론","상장"],
+    ["09846","고영","상장"],
+    ["05619","에스에프에이","상장"],
+    ["07460","원익QnC","상장"],
+    ["06908","웹젠","상장"],
+    ["06697","엘앤에프","상장폐지"],
+    ["08485","아이티엠반도체","상장"],
+    ["04689","서울반도체","상장"],
+    ["14108","리가켐바이오","상장"],
+    ["03590","JYP Ent.","상장"],
+    ["03693","주성엔지니어링","상장"],
+    ["03683","솔브레인홀딩스","상장"],
+    ["08645","동국제약","상장"],
+    ["03903","이오테크닉스","상장"],
+    ["03576","CJ ENM","상장"],
+    ["04907","인탑스","상장"],
+    ["05847","리노공업","상장"],
+    ["09170","파트론","상장"],
+    ["06476","티씨케이","상장"]
+]
+
+# 컬럼명 설정
+columns_comp = ["회사코드", "회사명", "상장여부"]
+
+# DataFrame 생성
+df_listed = pd.DataFrame(df_data_comp, columns=columns_comp)
+
+
+# 세션 상태에 df_listed 저장 (초기 로드 시)
+if 'df_listed' not in st.session_state:
+    st.session_state.df_listed = df_listed.copy()
+
+# 회사 추가 콜백 함수
+def add_company():
+    if st.session_state.company_code and st.session_state.company_name:
+        # 새 행 추가
+        new_row = pd.DataFrame({
+            "회사코드": [st.session_state.company_code],
+            "회사명": [st.session_state.company_name],
+            "상장여부": ["상장"]
+        })
+        # 세션 상태의 데이터프레임에 추가
+        st.session_state.df_listed = pd.concat([st.session_state.df_listed, new_row], ignore_index=True)
+        # 입력 필드 초기화
+        st.session_state.company_code = ""
+        st.session_state.company_name = ""
+
+# 3개의 칼럼 생성
+col1, col2, col3 = st.columns(3)
+
+# 첫번째 칼럼: 지원대상공시서식기준
+with col1:
+    st.subheader('지원대상 공시서식 (2025.3.12 기준)')
+    st.dataframe(df_svc)
+
+# 두번째 칼럼: 지원대상 회사목록
+with col2:
+    st.subheader('지원대상 회사 목록')
+    st.dataframe(st.session_state.df_listed)
+
+# 세번째 칼럼: 회사코드, 회사명, 지원대상법인 추가 버튼(세로로 배열)
+with col3:
+    st.subheader('지원대상법인 추가')
+    
+    # 세션 상태 키로 필드 추적
+    st.text("""※ '지원대상법인 추가' 기능은 '임시추가'용도입니다.
+   따라서 페이지가 새로고침되면 다시 입력해야 합니다.
+   영구적으로 추가하려면 담당자에게 문의부탁드립니다.""")
+    company_code = st.text_input("회사코드", max_chars=5, key="company_code")
+    st.text("""※ 회사코드는 종목코드(숫자 여섯자리)가 아니라 회사코드입니다. 
+   회사코드는 대부분 종목코드 여섯자리의 앞 5개이긴하지만, 
+   외국법인/DR의 회사코드는 알파벳이 포함되어 있습니다.""")
+    company_name = st.text_input("회사명", key="company_name")
+    
+    # 버튼 클릭 시 콜백 함수 호출
+    if st.button("지원대상법인 추가", on_click=add_company):
+        st.success(f"{st.session_state.company_name} 회사가 추가되었습니다.")
+
+# 필터링에 사용될 df_listed 업데이트
+df_listed = st.session_state.df_listed
 
 # 버튼 생성
 if st.button('금일 코스닥 영문공시 지원대상 공시조회'):
@@ -498,7 +608,7 @@ if st.button('금일 코스닥 영문공시 지원대상 공시조회'):
                         company_code = ""
                         if company_a_tag and company_a_tag.has_attr('onclick'):
                             onclick_attr = company_a_tag['onclick']
-                            code_match = re.search(r"companysummary_open\('(\d+)'\)", onclick_attr)
+                            code_match = re.search(r"companysummary_open\('([A-Za-z0-9]+)'\)", onclick_attr)
                             if code_match:
                                 company_code = code_match.group(1)
                         
@@ -608,7 +718,12 @@ if st.button('금일 코스닥 영문공시 지원대상 공시조회'):
                     return True
             return False
         
+        # 첫 번째 필터링: 지원 대상 서식만 필터
         filtered_df = df_discl[df_discl['공시제목'].apply(is_contained)]
+        
+        # 두 번째 필터링: 지정된 회사 코드만 필터
+        listed_company_codes = df_listed['회사코드'].tolist()
+        filtered_df = filtered_df[filtered_df['회사코드'].isin(listed_company_codes)]
         
         # 결과 표시
         st.subheader('금일 코스닥 지원대상 공시 목록')
@@ -618,7 +733,7 @@ if st.button('금일 코스닥 영문공시 지원대상 공시조회'):
         else:
             st.write(f"총 {len(filtered_df)}건의 지원대상 공시가 있습니다.")
             
-            # URL을 클릭 가능한 링크로 표시하는 방법 (Streamlit 1.20.0 이상)
+            # URL을 클릭 가능한 링크로 표시
             st.dataframe(
                 filtered_df,
                 column_config={
@@ -626,11 +741,3 @@ if st.button('금일 코스닥 영문공시 지원대상 공시조회'):
                 },
                 hide_index=True
             )
-            
-            # 구 버전 Streamlit에서 사용 가능한 대체 방법
-            # def make_clickable(url):
-            #     return f'<a href="{url}" target="_blank">링크</a>'
-            # 
-            # filtered_df_links = filtered_df.copy()
-            # filtered_df_links['상세URL'] = filtered_df_links['상세URL'].apply(make_clickable)
-            # st.markdown(filtered_df_links.to_html(escape=False, index=False), unsafe_allow_html=True)
