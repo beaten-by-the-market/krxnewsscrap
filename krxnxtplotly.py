@@ -37,7 +37,7 @@ if query_button:
     st.session_state.data_loaded = True
     
     # 사용자에게 로딩 중임을 알림
-    st.sidebar.success(f"NXT와 KRX의 홈페이지에서 공개하고 있는 📅 {selected_date.strftime('%Y년 %m월 %d일')} 데이터를 조회합니다!")
+    st.sidebar.success(f"NXT와 KRX의 홈페이지에서 공개하고 있는 📅 {selected_date.strftime('%Y년 %m월 %d일')} 데이터를 조회합니다! Cache는 5분간 유효합니다.")
 
 # 메인 컨텐츠 영역
 if st.session_state.data_loaded:
@@ -48,7 +48,7 @@ if st.session_state.data_loaded:
     # 데이터 로딩 표시
     with st.spinner('NXT와 KRX의 홈페이지를 방문하여 데이터를 확인중입니다...'):
         # 넥스트레이드 데이터 가져오기
-        @st.cache_data
+        @st.cache_data(ttl=300)
         def get_nxt_data(date):
             url = 'https://www.nextrade.co.kr/brdinfoTime/brdinfoTimeList.do'
             
@@ -99,7 +99,7 @@ if st.session_state.data_loaded:
             return df_nxt, now_date
         
         # KRX 데이터 가져오기
-        @st.cache_data
+        @st.cache_data(ttl=300)
         def get_krx_data(date):
             gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
             gen_otp = {
