@@ -455,7 +455,7 @@ columns = ["서식코드", "서식명", "대분류", "구분"]
 df_svc = pd.DataFrame(df_data, columns=columns)
 
 # 지원대상 데이터 리스트 (df_data 정의)
-df_data_comp = [["회사코드5자리", "회사명", "상장여부"]
+df_data_comp = [["11111", "회사명", "상장여부"]
 ]
 
 # 컬럼명 설정
@@ -490,13 +490,13 @@ col1, col2, col3 = st.columns(3)
 # 첫번째 칼럼: 지원대상공시서식기준
 with col1:
     st.subheader('지원대상 공시서식')
-    st.write(str(len(df_svc))+'개(last update 2025.3.29)')
+    st.write(str(len(df_svc))+'개(last update 2025.4.2)')
     st.dataframe(df_svc)
 
 # 두번째 칼럼: 지원대상 회사목록
 with col2:
     st.subheader('지원대상 회사 목록')
-    st.write(str(len(df_listed))+'사(last update 2025.3.31)')
+    st.write(str(len(df_listed))+'사(last update 2025.4.2)')
     st.dataframe(st.session_state.df_listed)
 
 # 세번째 칼럼: 회사코드, 회사명, 지원대상법인 추가 버튼(세로로 배열)
