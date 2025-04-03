@@ -28,7 +28,7 @@ db_config = {
     'database': st.secrets["general"]["db_name"],
 }
 
-# 데이터를 캐싱하여 재사용
+# 데이터사용
 def load_data_from_db():
     connection = None
     try:
@@ -82,7 +82,7 @@ df_data.columns = ["서식코드", "서식명", "대분류", "구분", "업데�
 # DataFrame 설정
 df_svc = df_data
 
-# 데이터를 캐싱하여 재사용
+# 데이터사용
 def load_data_from_db_name():
     connection = None
     try:
@@ -181,7 +181,7 @@ with col2:
 
 # 세번째 칼럼: 파일 업로드 및 DB 저장 기능
 with col3:
-    st.subheader('파일 업로드 및 DB 관리')
+    st.subheader('지원대상 서식 업로드')
     
     # 1. 지원대상 공시서식 업로드 섹션
     st.markdown("##### 칼럼이 4개짜리인 엑셀파일로 올려주세요")
