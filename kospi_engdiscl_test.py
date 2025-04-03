@@ -211,7 +211,7 @@ with col3:
                 # 세션 상태에 df_svc 업데이트
                 st.session_state.df_svc = df_disc.copy()
                 st.success("지원대상 공시서식이 업데이트되었습니다.")
-                st.experimental_rerun()  # 페이지 새로고침
+                st.rerun()  # 페이지 새로고침
         except Exception as e:
             st.error(f"파일 처리 중 오류 발생: {e}")
     
@@ -247,7 +247,7 @@ with col3:
                 # 세션 상태에 df_listed 업데이트
                 st.session_state.df_listed = df_disc.copy()
                 st.success("지원대상 회사 목록이 업데이트되었습니다.")
-                st.experimental_rerun()  # 페이지 새로고침
+                st.rerun()  # 페이지 새로고침
         except Exception as e:
             st.error(f"파일 처리 중 오류 발생: {e}")
     
