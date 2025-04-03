@@ -187,6 +187,7 @@ with col3:
     
     # 1. 지원대상 공시서식 업로드 섹션
     st.markdown("### 지원대상 공시서식 업로드")
+    st.markdown("##### 칼럼이 4개짜리인 엑셀파일로 올려주세요('업데이트일'칼럼 삭제필수)")
     
     disclosure_file = st.file_uploader("공시서식 Excel 파일 업로드", type=["xlsx", "xls"], key="disclosure_uploader")
     
@@ -275,6 +276,7 @@ with col3:
     
     # 2. 지원대상 회사 업로드 섹션
     st.markdown("### 지원대상 회사 업로드")
+    st.markdown("##### 칼럼이 3개짜리인 엑셀파일로 올려주세요('업데이트일'칼럼 삭제필수)")
     
     companies_file = st.file_uploader("회사 목록 Excel 파일 업로드", type=["xlsx", "xls"], key="companies_uploader")
     
