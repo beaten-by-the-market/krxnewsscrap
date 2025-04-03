@@ -181,9 +181,9 @@ with col2:
     st.write(str(len(st.session_state.df_listed))+'사')
     st.dataframe(st.session_state.df_listed)
 
-# 세번째 칼럼: 파일 업로드 기능 추가
+# 세번째 칼럼: 파일 업로드 및 DB 저장 기능
 with col3:
-    st.subheader('파일 업로드')
+    st.subheader('파일 업로드 및 DB 관리')
     
     # 1. 지원대상 공시서식 업로드 섹션
     st.markdown("### 지원대상 공시서식 업로드")
@@ -207,11 +207,66 @@ with col3:
             st.dataframe(df_disc)
             
             # 업로드 확인 버튼
-            if st.button("공시서식 데이터 적용하기", key="apply_disclosure"):
+            if st.button("공시서식 임시 적용하기", key="apply_disclosure"):
                 # 세션 상태에 df_svc 업데이트
                 st.session_state.df_svc = df_disc.copy()
-                st.success("지원대상 공시서식이 업데이트되었습니다.")
+                st.success("지원대상 공시서식이 임시 업데이트되었습니다.")
                 st.rerun()  # 페이지 새로고침
+                
+            # DB에 영구반영하기 버튼
+            if st.button("공시서식 DB에 영구반영하기", key="save_disclosure_to_db"):
+                try:
+                    # Create a connection to the database
+                    connection = mysql.connector.connect(**db_config)
+
+                    if connection.is_connected():
+                        st.info("MySQL 데이터베이스에 연결되었습니다.")
+
+                        # Create a cursor object to interact with the database
+                        cursor = connection.cursor()
+                        
+                        # 스키마 이용
+                        cursor.execute("USE englishkind")
+                        
+                        cursor.execute("DROP TABLE IF EXISTS kospi_report")
+                        
+                        # 유가 번역대상 보고서 테이블 생성
+                        cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS kospi_report (
+                            form_code VARCHAR(5) PRIMARY KEY,
+                            form_name VARCHAR(255) NOT NULL,
+                            form_type VARCHAR(255) NOT NULL,
+                            institution VARCHAR(255) NOT NULL,
+                            update_date VARCHAR(8) NOT NULL
+                        )
+                        """)
+                        
+                        # Insert the data from the DataFrame into the table using parameterized queries
+                        insert_query = """INSERT INTO kospi_report (
+                        form_code, form_name, form_type, institution, update_date) 
+                        VALUES (%s, %s, %s, %s, %s)
+                        """
+                        
+                        # Streamlit용 진행 표시줄
+                        progress_bar = st.progress(0)
+                        for i, (_, row) in enumerate(df_disc.iterrows()):
+                            row = row.fillna("-")
+                            cursor.execute(insert_query, (row['서식코드'], row['서식명'], row['대분류'], row['구분'], row['update_date']))
+                            progress_bar.progress((i + 1) / len(df_disc))
+
+                        # Commit the changes
+                        connection.commit()
+                        st.success("공시서식 데이터가 데이터베이스에 성공적으로 저장되었습니다!")
+
+                except mysql.connector.Error as e:
+                    st.error(f"오류: {e}")
+
+                finally:
+                    if connection.is_connected():
+                        cursor.close()
+                        connection.close()
+                        st.info("MySQL 연결이 종료되었습니다.")
+                
         except Exception as e:
             st.error(f"파일 처리 중 오류 발생: {e}")
     
@@ -243,34 +298,74 @@ with col3:
             st.dataframe(df_disc)
             
             # 업로드 확인 버튼
-            if st.button("회사 데이터 적용하기", key="apply_companies"):
+            if st.button("회사 데이터 임시 적용하기", key="apply_companies"):
                 # 세션 상태에 df_listed 업데이트
                 st.session_state.df_listed = df_disc.copy()
-                st.success("지원대상 회사 목록이 업데이트되었습니다.")
+                st.success("지원대상 회사 목록이 임시 업데이트되었습니다.")
                 st.rerun()  # 페이지 새로고침
+                
+            # DB에 영구반영하기 버튼
+            if st.button("회사 데이터 DB에 영구반영하기", key="save_companies_to_db"):
+                try:
+                    # Create a connection to the database
+                    connection = mysql.connector.connect(**db_config)
+
+                    if connection.is_connected():
+                        st.info("MySQL 데이터베이스에 연결되었습니다.")
+
+                        # Create a cursor object to interact with the database
+                        cursor = connection.cursor()
+                        
+                        # 데이터베이스 이용
+                        cursor.execute("USE englishkind")
+                        
+                        cursor.execute("DROP TABLE IF EXISTS kospi_companies")
+                        
+                        # 유가 번역대상 보고서 테이블 생성
+                        cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS kospi_companies (
+                            company_code VARCHAR(5) PRIMARY KEY,
+                            company_name VARCHAR(255) NOT NULL,
+                            listed VARCHAR(255) NOT NULL,
+                            update_date VARCHAR(8) NOT NULL
+                        )
+                        """)
+                        
+                        # Insert the data from the DataFrame into the table using parameterized queries
+                        insert_query = """INSERT INTO kospi_companies (
+                        company_code, company_name, listed, update_date) 
+                        VALUES (%s, %s, %s, %s)
+                        """
+                        
+                        # Streamlit용 진행 표시줄
+                        progress_bar = st.progress(0)
+                        for i, (_, row) in enumerate(df_disc.iterrows()):
+                            row = row.fillna("-")
+                            cursor.execute(insert_query, (row['회사코드'], row['회사명'], row['상장여부'], row['update_date']))
+                            progress_bar.progress((i + 1) / len(df_disc))
+
+                        # Commit the changes
+                        connection.commit()
+                        st.success("회사 데이터가 데이터베이스에 성공적으로 저장되었습니다!")
+
+                except mysql.connector.Error as e:
+                    st.error(f"오류: {e}")
+
+                finally:
+                    if connection.is_connected():
+                        cursor.close()
+                        connection.close()
+                        st.info("MySQL 연결이 종료되었습니다.")
+                
         except Exception as e:
             st.error(f"파일 처리 중 오류 발생: {e}")
+
     
-    # 기존 회사 수동 추가 기능 유지
-    st.markdown("---")
-    st.subheader('지원대상법인 개별 추가')
-    
-    st.text("""※ '지원대상법인 추가' 기능은 '임시추가'용도입니다.
-    따라서 페이지가 새로고침되면 다시 입력해야 합니다.
-    영구적으로 추가하려면 담당자에게 문의부탁드립니다.""")
-    company_code = st.text_input("회사코드", max_chars=5, key="company_code")
-    st.text("""※ 회사코드는 종목코드(숫자 여섯자리)가 아니라 회사코드입니다. 
-    회사코드는 대부분 종목코드 여섯자리의 앞 5개이긴하지만, 
-    외국법인/DR의 회사코드는 알파벳이 포함되어 있습니다.""")
-    company_name = st.text_input("회사명", key="company_name")
-    
-    # 버튼 클릭 시 콜백 함수 호출
-    if st.button("지원대상법인 추가", on_click=add_company):
-        st.success(f"{st.session_state.company_name} 회사가 추가되었습니다.")
 
 
 
 # 필터링에 사용될 df_listed 업데이트
+df_svc = st.session_state.df_svc
 df_listed = st.session_state.df_listed
 
 # 날짜 계산 함수
