@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime, timedelta
 import time
+import mysql.connector
 
 # 페이지 설정 (wide 모드로 설정)
 st.set_page_config(
