@@ -29,7 +29,6 @@ db_config = {
 }
 
 # 데이터를 캐싱하여 재사용
-@st.cache_data
 def load_data_from_db():
     connection = None
     try:
@@ -84,7 +83,6 @@ df_data.columns = ["서식코드", "서식명", "대분류", "구분", "업데�
 df_svc = df_data
 
 # 데이터를 캐싱하여 재사용
-@st.cache_data
 def load_data_from_db_name():
     connection = None
     try:
