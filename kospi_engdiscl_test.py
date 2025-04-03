@@ -160,35 +160,115 @@ def add_company():
 # 3개의 칼럼 생성
 col1, col2, col3 = st.columns(3)
 
+# 세션 상태에 df_svc 저장 (초기 로드 시)
+if 'df_svc' not in st.session_state:
+    st.session_state.df_svc = df_svc.copy()
+
 # 첫번째 칼럼: 지원대상공시서식기준
 with col1:
     st.subheader('지원대상 공시서식')
-    st.write(str(len(df_svc))+'개')
-    st.dataframe(df_svc)
+    # 세션 상태의 df_svc를 사용
+    if 'df_svc' in st.session_state:
+        st.write(str(len(st.session_state.df_svc))+'개')
+        st.dataframe(st.session_state.df_svc)
+    else:
+        st.write(str(len(df_svc))+'개')
+        st.dataframe(df_svc)
 
 # 두번째 칼럼: 지원대상 회사목록
 with col2:
     st.subheader('지원대상 회사 목록')
-    st.write(str(len(df_listed))+'사')
+    st.write(str(len(st.session_state.df_listed))+'사')
     st.dataframe(st.session_state.df_listed)
 
-# 세번째 칼럼: 회사코드, 회사명, 지원대상법인 추가 버튼(세로로 배열)
+# 세번째 칼럼: 파일 업로드 기능 추가
 with col3:
-    st.subheader('지원대상법인 추가')
+    st.subheader('파일 업로드')
     
-    # 세션 상태 키로 필드 추적
+    # 1. 지원대상 공시서식 업로드 섹션
+    st.markdown("### 지원대상 공시서식 업로드")
+    
+    disclosure_file = st.file_uploader("공시서식 Excel 파일 업로드", type=["xlsx", "xls"], key="disclosure_uploader")
+    
+    if disclosure_file is not None:
+        try:
+            # Excel 파일 읽기
+            df_disc = pd.read_excel(disclosure_file, dtype=str)
+            
+            # 오늘날짜 설정
+            today = (datetime.today()).strftime('%Y%m%d')
+            df_disc['update_date'] = today
+            
+            # 칼럼명 설정
+            df_disc.columns = ['서식코드', '서식명', '대분류', '구분', 'update_date']
+            
+            # 데이터 미리보기 표시
+            st.write("업로드된 공시서식 데이터:")
+            st.dataframe(df_disc)
+            
+            # 업로드 확인 버튼
+            if st.button("공시서식 데이터 적용하기", key="apply_disclosure"):
+                # 세션 상태에 df_svc 업데이트
+                st.session_state.df_svc = df_disc.copy()
+                st.success("지원대상 공시서식이 업데이트되었습니다.")
+                st.experimental_rerun()  # 페이지 새로고침
+        except Exception as e:
+            st.error(f"파일 처리 중 오류 발생: {e}")
+    
+    # 구분선 추가
+    st.markdown("---")
+    
+    # 2. 지원대상 회사 업로드 섹션
+    st.markdown("### 지원대상 회사 업로드")
+    
+    companies_file = st.file_uploader("회사 목록 Excel 파일 업로드", type=["xlsx", "xls"], key="companies_uploader")
+    
+    if companies_file is not None:
+        try:
+            # Excel 파일 읽기
+            df_disc = pd.read_excel(companies_file, dtype=str)
+            
+            # 회사코드 포맷팅 (5자리로 맞추고 앞에 0 채우기)
+            df_disc['회사코드'] = df_disc['회사코드'].apply(lambda x: str(x).rjust(5, '0'))
+            
+            # 오늘날짜 설정
+            today = (datetime.today()).strftime('%Y%m%d')
+            df_disc['update_date'] = today
+            
+            # 칼럼명 설정
+            df_disc.columns = ['회사코드', '회사명', '상장여부', 'update_date']
+            
+            # 데이터 미리보기 표시
+            st.write("업로드된 회사 데이터:")
+            st.dataframe(df_disc)
+            
+            # 업로드 확인 버튼
+            if st.button("회사 데이터 적용하기", key="apply_companies"):
+                # 세션 상태에 df_listed 업데이트
+                st.session_state.df_listed = df_disc.copy()
+                st.success("지원대상 회사 목록이 업데이트되었습니다.")
+                st.experimental_rerun()  # 페이지 새로고침
+        except Exception as e:
+            st.error(f"파일 처리 중 오류 발생: {e}")
+    
+    # 기존 회사 수동 추가 기능 유지
+    st.markdown("---")
+    st.subheader('지원대상법인 개별 추가')
+    
     st.text("""※ '지원대상법인 추가' 기능은 '임시추가'용도입니다.
-   따라서 페이지가 새로고침되면 다시 입력해야 합니다.
-   영구적으로 추가하려면 담당자에게 문의부탁드립니다.""")
+    따라서 페이지가 새로고침되면 다시 입력해야 합니다.
+    영구적으로 추가하려면 담당자에게 문의부탁드립니다.""")
     company_code = st.text_input("회사코드", max_chars=5, key="company_code")
     st.text("""※ 회사코드는 종목코드(숫자 여섯자리)가 아니라 회사코드입니다. 
-   회사코드는 대부분 종목코드 여섯자리의 앞 5개이긴하지만, 
-   외국법인/DR의 회사코드는 알파벳이 포함되어 있습니다.""")
+    회사코드는 대부분 종목코드 여섯자리의 앞 5개이긴하지만, 
+    외국법인/DR의 회사코드는 알파벳이 포함되어 있습니다.""")
     company_name = st.text_input("회사명", key="company_name")
     
     # 버튼 클릭 시 콜백 함수 호출
     if st.button("지원대상법인 추가", on_click=add_company):
         st.success(f"{st.session_state.company_name} 회사가 추가되었습니다.")
+
+
 
 # 필터링에 사용될 df_listed 업데이트
 df_listed = st.session_state.df_listed
