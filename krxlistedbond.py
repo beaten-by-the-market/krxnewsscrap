@@ -18,6 +18,18 @@ def get_default_date():
         return (today - timedelta(days=today.weekday() - 4)).strftime("%Y-%m-%d")  # 직전 금요일
     return today.strftime("%Y-%m-%d")  # 오늘 날짜
 
+# 데이터프레임 포맷팅 함수 추가
+def format_dataframe(df):
+    # 인덱스 리셋
+    df = df.reset_index(drop=True)
+    
+    # 발행금액, 상장금액에 천단위 구분자 적용
+    for col in ['발행금액', '상장금액']:
+        if col in df.columns:
+            df[col] = df[col].apply(lambda x: f"{x:,.0f}")
+    
+    return df
+
 # 데이터 로딩 함수 (캐싱 적용 - 유효시간 10분)
 @st.cache_data(ttl=600)
 def load_bond_data():
@@ -91,7 +103,7 @@ def main():
         max_value=datetime.today()       # 최대 선택 가능 날짜
     )
 
-    # 선택된 날짜를 date 객체로 변환
+    # 선택된 날짜를 문자열로 변환
     today_date = selected_date.strftime("%Y-%m-%d")
     
     # 데이터 로딩 표시
@@ -101,6 +113,10 @@ def main():
         if not bonds.empty:
             # 선택된 날짜로 필터링
             filtered_bonds = bonds[bonds['상장일'] == selected_date]
+            
+            # 데이터프레임 포맷팅 (인덱스 리셋 및 천단위 구분자 적용)
+            if not filtered_bonds.empty:
+                filtered_bonds = format_dataframe(filtered_bonds)
             
             # 결과 표시
             st.subheader(f'{today_date} 상장된 채권 목록')
@@ -136,6 +152,10 @@ def main():
                 
                 # 날짜 범위로 필터링
                 range_filtered_bonds = bonds[(bonds['상장일'] >= start_date) & (bonds['상장일'] <= end_date)]
+                
+                # 데이터프레임 포맷팅 (인덱스 리셋 및 천단위 구분자 적용)
+                if not range_filtered_bonds.empty:
+                    range_filtered_bonds = format_dataframe(range_filtered_bonds)
                 
                 st.subheader(f'{start_date.strftime("%Y-%m-%d")} ~ {end_date.strftime("%Y-%m-%d")} 상장된 채권 목록')
                 
