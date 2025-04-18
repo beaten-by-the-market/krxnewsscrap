@@ -119,7 +119,7 @@ def main():
                 filtered_bonds = format_dataframe(filtered_bonds)
             
             # 결과 표시
-            st.subheader(f'{today_date} 상장된 채권 목록')
+            st.subheader(f'{today_date} 상장된 채권 목록(금액단위 : 백만원)')
             
             if len(filtered_bonds) == 0:
                 st.info(f'{today_date}에 상장된 채권이 없습니다.')
@@ -157,7 +157,7 @@ def main():
                 if not range_filtered_bonds.empty:
                     range_filtered_bonds = format_dataframe(range_filtered_bonds)
                 
-                st.subheader(f'{start_date.strftime("%Y-%m-%d")} ~ {end_date.strftime("%Y-%m-%d")} 상장된 채권 목록')
+                st.subheader(f'{start_date.strftime("%Y-%m-%d")} ~ {end_date.strftime("%Y-%m-%d")} 상장된 채권 목록(금액단위 : 백만원)')
                 
                 if len(range_filtered_bonds) == 0:
                     st.info('해당 기간에 상장된 채권이 없습니다.')
