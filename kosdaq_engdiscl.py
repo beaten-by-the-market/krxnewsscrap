@@ -407,7 +407,7 @@ if st.button('코스닥 영문공시 지원대상 공시조회'):
                 "pageIndex": page_num,
                 "orderMode": 0,
                 "orderStat": "D",
-                "marketType": 1,
+                "marketType": 2,
                 "forward": "todaydisclosure_sub",
                 "searchMode": "",
                 "searchCodeType": "",
