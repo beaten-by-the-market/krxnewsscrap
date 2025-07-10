@@ -9,3 +9,4 @@ xml_to_dict
 XMLtoDict
 bs4
 openpyxl
+xlsxwriter
