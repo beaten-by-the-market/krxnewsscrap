@@ -400,9 +400,6 @@ def main():
     st.title("📊 희석주식수 분석 서비스")
     st.markdown("---")
     
-    # 사이드바
-    st.sidebar.title("🔍 검색 옵션")
-    
     # 세션 상태 초기화
     if 'analysis_completed' not in st.session_state:
         st.session_state.analysis_completed = False
@@ -414,19 +411,22 @@ def main():
     
     df_inte = st.session_state.df_inte
     
+    # 메인 페이지에서 검색 옵션 제공
+    st.subheader("🔍 종목 검색")
+    
     # 검색 방식 선택
-    search_method = st.sidebar.selectbox(
+    search_method = st.selectbox(
         "검색 방식을 선택하세요:",
         ["회사명으로 검색", "종목코드로 검색"]
     )
     
     # 검색 입력
     if search_method == "종목코드로 검색":
-        search_query = st.sidebar.text_input("종목코드를 입력하세요 (예: 000020):", "")
+        search_query = st.text_input("종목코드를 입력하세요 (예: 000020):", "")
         if search_query:
             filtered_df = df_inte[df_inte['SHOTN_ISIN'].str.contains(search_query, na=False)]
     else:
-        search_query = st.sidebar.text_input("회사명을 입력하세요 (예: 삼성전자):", "")
+        search_query = st.text_input("회사명을 입력하세요 (예: 삼성전자):", "")
         if search_query:
             filtered_df = df_inte[df_inte['한글 종목약명'].str.contains(search_query, na=False)]
     
@@ -727,7 +727,7 @@ def main():
     # 앱 정보
     st.markdown("---")
     st.markdown("**💡 사용 가이드**")
-    st.markdown("1. 사이드바에서 검색 방식을 선택하세요")
+    st.markdown("1. 검색 방식을 선택하세요")
     st.markdown("2. 종목코드 또는 회사명을 입력하여 검색하세요")
     st.markdown("3. 검색 결과에서 원하는 종목을 선택하세요")
     st.markdown("4. '희석주식수 확인' 버튼을 클릭하여 상세 분석을 확인하세요")
