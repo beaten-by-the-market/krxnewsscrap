@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 from io import BytesIO
+from krx_data_api import fetch
 
 # Streamlit 앱 생성
 st.title("KRX vs NXT 비교")
@@ -41,27 +42,7 @@ if st.button("오늘의 KRXvsNXT비교"):
     df_nxt = df_nxt.rename(columns={'현재가': 'NXT현재가', '등락률': 'NXT등락률', '거래량': 'NXT거래량', '거래대금':'NXT거래대금'})
         
     # KRX 데이터 요청
-    gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-    gen_otp = {
-        'locale' : 'ko_KR',
-        'mktId': 'ALL',
-        'trdDd': '20250304',
-        'share': '1',
-        'money': '1',
-        'csvxls_isNo': 'false',
-        'name': 'fileDown',
-        'url': 'dbms/MDC/STAT/standard/MDCSTAT01501'
-    }
-    
-    headers = {'Referer' : 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020201',
-               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-    
-    otp = requests.post(gen_otp_url, gen_otp, headers=headers).text
-    down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-    down_content = requests.post(down_url, {'code': otp}, headers=headers)
-    
-    df_krx = pd.read_csv(BytesIO(down_content.content), encoding='EUC-KR')
-    df_krx['시장구분'] = df_krx['시장구분'].replace('KOSDAQ GLOBAL', 'KOSDAQ')
+    df_krx = fetch("all_stock_price", trdDd='20250304', money='1')
     df_krx = df_krx.rename(columns={'단축코드': '종목코드'})
     
     df_krx = df_krx[['종목코드', '종가', '등락률', '거래량', '거래대금', '시가총액']]

@@ -6,6 +6,7 @@ from io import BytesIO
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, timedelta
+from krx_data_api import fetch
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -32,31 +33,10 @@ if 'stock_data' not in st.session_state:
 # 종목 정보 로드 함수
 @st.cache_data
 def load_stock_list():
-    """KRX에서 전체 종목 리스트를 가져오는 함수"""
+    """KRX에서 전체 종목 리스트를 가져오는 함수 (krx-data-api 패키지 사용)"""
     try:
-        gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-        gen_otp = {
-            'locale' : 'ko_KR',
-            'mktId': 'ALL',
-            'share': '1',
-            'csvxls_isNo': 'false',
-            'name': 'fileDown',
-            'url': 'dbms/MDC/STAT/standard/MDCSTAT01901'
-        }
-        
-        headers = {
-            'Referer' : 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020201',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        
-        otp = requests.post(gen_otp_url, gen_otp, headers=headers).text
-        down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-        down_content = requests.post(down_url, {'code': otp}, headers=headers)
-        
-        df_listed = pd.read_csv(BytesIO(down_content.content), encoding='EUC-KR')
-        df_listed['시장구분'] = df_listed['시장구분'].replace('KOSDAQ GLOBAL', 'KOSDAQ')
-        df_listed = df_listed.rename(columns={'단축코드':'stock_code'})
-        
+        df_listed = fetch("listed_stocks")
+        df_listed = df_listed.rename(columns={'단축코드': 'stock_code'})
         return df_listed
     except Exception as e:
         st.error(f"종목 정보 로드 중 오류 발생: {str(e)}")
@@ -64,49 +44,24 @@ def load_stock_list():
 
 # 주가 데이터 가져오기 함수
 def get_price(stock_code, start_date, end_date, df_listed):
-    """개별 종목의 주가 데이터를 가져오는 함수"""
+    """개별 종목의 주가 데이터를 가져오는 함수 (krx-data-api 패키지 사용)"""
     try:
         code = stock_code
         selected_row = df_listed[df_listed['stock_code'] == code]
-        
         if selected_row.empty:
             return None
-            
         isin = selected_row['표준코드'].values[0]
         corp_name = selected_row['한글 종목약명'].values[0]
-        
-        gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-        gen_otp = {
-            'locale' : 'ko_KR',
-            'tboxisuCd_finder_stkisu0_0': f'{code}/{corp_name}',
-            'isuCd': f'{isin}',
-            'isuCd2': f'{code}',
-            'codeNmisuCd_finder_stkisu0_0': f'{corp_name}',
-            'param1isuCd_finder_stkisu0_0': 'ALL',
-            'strtDd': f'{start_date}',
-            'endDd': f'{end_date}',
-            'adjStkPrc_check': 'Y',
-            'adjStkPrc': '2',
-            'share': '1',
-            'money': '1',
-            'csvxls_isNo': 'false',
-            'name': 'fileDown',
-            'url': 'dbms/MDC/STAT/standard/MDCSTAT01701'
-        }
-        
-        headers = {
-            'Referer' : 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020201',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        
-        otp = requests.post(gen_otp_url, gen_otp, headers=headers).text
-        down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-        down_content = requests.post(down_url, {'code': otp}, headers=headers)
-        
-        df_ind_price = pd.read_csv(BytesIO(down_content.content), encoding='EUC-KR')
-        
-        return df_ind_price
-        
+        return fetch(
+            "individual_price_trend",
+            tboxisuCd_finder_stkisu0_0=f'{code}/{corp_name}',
+            isuCd=isin,
+            isuCd2=code,
+            codeNmisuCd_finder_stkisu0_0=corp_name,
+            param1isuCd_finder_stkisu0_0='ALL',
+            strtDd=str(start_date),
+            endDd=str(end_date),
+        )
     except Exception as e:
         st.error(f"주가 데이터 로드 중 오류 발생: {str(e)}")
         return None

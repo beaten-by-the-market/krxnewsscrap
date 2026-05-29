@@ -5,6 +5,7 @@ import plotly.express as px
 from io import BytesIO
 from datetime import datetime
 import plotly.io as pio
+from krx_data_api import fetch
 pio.json.config.default_engine = 'json'  # orjson 대신 기본 json 사용
 
 
@@ -98,41 +99,16 @@ if st.session_state.data_loaded:
             
             return df_nxt, now_date
         
-        # KRX 데이터 가져오기
+        # KRX 데이터 가져오기 (krx-data-api 패키지 사용)
         @st.cache_data(ttl=300)
         def get_krx_data(date):
-            gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-            gen_otp = {
-                'locale' : 'ko_KR',
-                'mktId': 'ALL',
-                'trdDd': date,
-                'share': '1',
-                'money': '1',
-                'csvxls_isNo': 'false',
-                'name': 'fileDown',
-                'url': 'dbms/MDC/STAT/standard/MDCSTAT01501'
-            }
-            
-            headers = {
-                'Referer' : 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020201',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-            
             try:
-                otp = requests.post(gen_otp_url, gen_otp, headers=headers).text
-                down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-                down_content = requests.post(down_url, {'code': otp}, headers=headers)
-                
-                df_krx = pd.read_csv(BytesIO(down_content.content), encoding='EUC-KR')
-                df_krx['시장구분'] = df_krx['시장구분'].replace('KOSDAQ GLOBAL', 'KOSDAQ')
-                
-                # 필요한 칼럼만 남기기
+                df_krx = fetch("all_stock_price", trdDd=date, money='1')
                 df_krx = df_krx[['종목코드', '종가', '등락률', '거래량', '거래대금', '시가총액']]
-                
-                # 칼럼명 변경하기
-                df_krx = df_krx.rename(columns={'종가': 'KRX종가','등락률': 'KRX종가등락률', 
-                                              '거래량': 'KRX거래량', '거래대금': 'KRX거래대금'})
-                
+                df_krx = df_krx.rename(columns={
+                    '종가': 'KRX종가', '등락률': 'KRX종가등락률',
+                    '거래량': 'KRX거래량', '거래대금': 'KRX거래대금',
+                })
                 return df_krx
             except Exception as e:
                 st.error(f"KRX 데이터를 가져오는 중 오류가 발생했습니다: {e}")

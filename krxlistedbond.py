@@ -3,6 +3,7 @@ import requests
 from io import BytesIO
 import streamlit as st
 from datetime import datetime, timedelta
+from krx_data_api import fetch
 
 # 페이지 설정
 st.set_page_config(
@@ -33,55 +34,26 @@ def format_dataframe(df):
 # 데이터 로딩 함수 (캐싱 적용 - 유효시간 10분)
 @st.cache_data(ttl=600)
 def load_bond_data():
+    """[14011] 상장채권 상세검색 (krx-data-api 패키지 사용)."""
     try:
-        # 거래소 홈페이지에서 불러오기
-        # 화면번호 [14011] 상장채권 상세검색
-        gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-        gen_otp_data = {
-            "locale": "ko_KR",
-            "tboxisurCd_finder_bndordisu0_0": "전체",
-            "isurCd": "",
-            "isurCd2": "",
-            "codeNmisurCd_finder_bndordisu0_0": "",
-            "param1isurCd_finder_bndordisu0_0": "",
-            "bndTpCd": "",
-            "tboxbndClssCd_finder_bndclss0_0": "",
-            "bndClssCd": "",
-            "bndClssCd2": "",
-            "codeNmbndClssCd_finder_bndclss0_0": "",
-            "param1bndClssCd_finder_bndclss0_0": "",
-            "endrTyp": "",
-            "spbTyp": "",
-            "opbTyp": "0",
-            "irtPayMth": "",
-            "refundNm": "",
-            "strtDd1": "",
-            "endDd1": "",
-            "strtDd2": "",
-            "endDd2": "",
-            "crdtAssInst": "",
-            "crdtAssRk": "",
-            "strtDd3": "",
-            "endDd3": "",
-            "currTpCd": "",
-            "rankTpCd": "",
-            "money": "2",
-            "csvxls_isNo": "false",
-            "name": "fileDown",
-            "url": "dbms/MDC/STAT/standard/MDCSTAT10801"
-        }
-
-        headers = {
-            'Referer': 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC03010201',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-
-        otp = requests.post(gen_otp_url, gen_otp_data, headers=headers).text
-        down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-        down_content = requests.post(down_url, {'code': otp}, headers=headers)
-        
-        # CSV 데이터 로드 및 상장일 칼럼 날짜 변환 (날짜만 추출)
-        bonds = pd.read_csv(BytesIO(down_content.content), encoding='EUC-KR')
+        bonds = fetch(
+            "listed_bonds",
+            tboxisurCd_finder_bndordisu0_0="전체",
+            isurCd="", isurCd2="",
+            codeNmisurCd_finder_bndordisu0_0="",
+            param1isurCd_finder_bndordisu0_0="",
+            bndTpCd="",
+            tboxbndClssCd_finder_bndclss0_0="",
+            bndClssCd="", bndClssCd2="",
+            codeNmbndClssCd_finder_bndclss0_0="",
+            param1bndClssCd_finder_bndclss0_0="",
+            endrTyp="", spbTyp="", opbTyp="0",
+            irtPayMth="", refundNm="",
+            strtDd1="", endDd1="", strtDd2="", endDd2="",
+            crdtAssInst="", crdtAssRk="",
+            strtDd3="", endDd3="",
+            currTpCd="", rankTpCd="",
+        )
         bonds['상장일'] = pd.to_datetime(bonds['상장일'], format='%Y/%m/%d').dt.date
         return bonds
     except Exception as e:

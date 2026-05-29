@@ -9,6 +9,7 @@ import urllib.parse
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from krx_data_api import fetch
 import warnings
 warnings.filterwarnings('ignore', message='Unverified HTTPS request')
 
@@ -83,46 +84,17 @@ def load_basic_data():
     # 보통주만 필터링
     df_stock_cust_f = df_stock_cust[df_stock_cust['SHOTN_ISIN'].str.endswith('0')].reset_index(drop=True)
     
-    # KRX 데이터 수집
+    # KRX 데이터 수집 (krx-data-api 패키지가 OTP/인증을 처리)
     status_text.text('KRX 종목 정보 수집 중...')
-    
-    gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-    down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-    
-    gen_otp = {
-        'locale': 'ko_KR',
-        'mktId': 'ALL',
-        'share': '1',
-        'csvxls_isNo': 'false',
-        'name': 'fileDown',
-        'url': 'dbms/MDC/STAT/standard/MDCSTAT01901'
-    }
-    
-    headers = {
-        'Referer': 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020201',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    
+
     max_retries = 3
     success = False
-    
     for attempt in range(max_retries):
         try:
-            sleep(0.5)
-            otp_resp = requests.post(gen_otp_url, gen_otp, headers=headers, timeout=30)
-            otp_resp.raise_for_status()
-            otp = otp_resp.text.strip()
-            
-            down_resp = requests.post(down_url, {'code': otp}, headers=headers, timeout=30)
-            down_resp.raise_for_status()
-            
-            df_listed = pd.read_csv(BytesIO(down_resp.content), encoding='EUC-KR')
-            df_listed['시장구분'] = df_listed['시장구분'].replace('KOSDAQ GLOBAL', 'KOSDAQ')
+            df_listed = fetch("listed_stocks")
             df_listed = df_listed.rename(columns={'단축코드': 'stock_code'})
-            
             success = True
             break
-            
         except Exception as e:
             if attempt < max_retries - 1:
                 sleep(attempt + 1)

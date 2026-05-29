@@ -4,6 +4,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import pandas as pd
 from datetime import datetime
 from io import BytesIO
+from krx_data_api import fetch
 
 # 페이지 설정
 st.set_page_config(
@@ -27,31 +28,10 @@ API_BASE_URL = 'https://api.deepsearch.com/v1/compute?input='
 # 종목 정보 로드 함수
 @st.cache_data
 def load_stock_list():
-    """KRX에서 전체 종목 리스트를 가져오는 함수"""
+    """KRX에서 전체 종목 리스트를 가져오는 함수 (krx-data-api 패키지 사용)"""
     try:
-        gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
-        gen_otp = {
-            'locale' : 'ko_KR',
-            'mktId': 'ALL',
-            'share': '1',
-            'csvxls_isNo': 'false',
-            'name': 'fileDown',
-            'url': 'dbms/MDC/STAT/standard/MDCSTAT01901'
-        }
-        
-        headers = {
-            'Referer' : 'http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020201',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        
-        otp = requests.post(gen_otp_url, gen_otp, headers=headers).text
-        down_url = 'http://data.krx.co.kr/comm/fileDn/download_csv/download.cmd'
-        down_content = requests.post(down_url, {'code': otp}, headers=headers)
-        
-        df_listed = pd.read_csv(BytesIO(down_content.content), encoding='EUC-KR')
-        df_listed['시장구분'] = df_listed['시장구분'].replace('KOSDAQ GLOBAL', 'KOSDAQ')
-        df_listed = df_listed.rename(columns={'단축코드':'stock_code'})
-        
+        df_listed = fetch("listed_stocks")
+        df_listed = df_listed.rename(columns={'단축코드': 'stock_code'})
         return df_listed
     except Exception as e:
         st.error(f"종목 정보 로드 중 오류 발생: {str(e)}")
